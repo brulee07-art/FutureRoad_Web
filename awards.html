@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awards - 대회 홍보 사이트</title>
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./text.css">
+    <style>
+        .container { max-width: none; width: 100%; margin: 0 auto; padding: 0; }
+        
+        /* 히어로 섹션 */
+        .awards-hero {
+            position: relative;
+            width: 100%;
+            min-height: calc(68vh - 200px);
+            border-radius: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a, #1f2937);
+            box-shadow: 0 12px 28px rgba(2, 6, 23, 0.25);
+            isolation: isolate;
+            z-index: 1;
+            --hero-bg: url('images/awardspageimage1.jpeg');
+        }
+        .awards-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--hero-bg);
+            background-size: cover;
+            background-position: center;
+            opacity: .50;
+            z-index: -2;
+        }
+        .awards-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(1200px 400px at 20% 20%, rgba(255,255,255,.18), transparent 60%),
+                        linear-gradient(180deg, rgba(15,23,42,.25), rgba(15,23,42,.65));
+            z-index: -1;
+        }
+        .awards-hero__inner {
+            position: relative;
+            padding: 6rem 2.25rem;
+            display: grid;
+            place-items: center;
+            height: 100%;
+            text-align: center;
+            width: 100%;
+        }
+        .awards-hero__title {
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            line-height: 1.1;
+            color: #ffffff;
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            margin: 0;
+            text-shadow: 0 6px 22px rgba(0,0,0,.35);
+        }
+
+        /* 시상 내역 섹션 */
+        .awards-content {
+            margin-top: 4rem;
+            margin-bottom: 6rem;
+            padding: 0 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .awards-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 3rem;
+        }
+        .awards-table tbody tr {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .awards-table tbody tr:hover {
+            transform: translateX(8px);
+        }
+        .awards-table tbody tr:not(:last-child) td {
+            border-bottom: 1px solid transparent;
+            background-image: linear-gradient(90deg, #e5e7eb 0%, transparent 100%);
+            background-size: 100% 1px;
+            background-repeat: no-repeat;
+            background-position: bottom;
+            padding-bottom: 2rem;
+        }
+        .awards-table tbody tr:last-child td {
+            padding-bottom: 1rem;
+        }
+        .award-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0c0ca7;
+            padding: 1rem 0;
+            text-align: left;
+            vertical-align: top;
+            min-width: 200px;
+            letter-spacing: -0.01em;
+        }
+        .award-description {
+            font-size: 1.15rem;
+            color: #1f2937;
+            line-height: 1.8;
+            padding: 1rem 0 1rem 2rem;
+            text-align: left;
+            vertical-align: top;
+        }
+        .awards-note {
+            color: #475569;
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-top: 2rem;
+            padding-left: 0;
+        }
+
+        /* 애니메이션 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal[data-delay] {
+            transition-delay: var(--delay, 0ms);
+        }
+
+        /* 반응형 */
+        @media (max-width: 900px) {
+            .awards-hero {
+                min-height: 52vh;
+            }
+            .awards-hero__title {
+                font-size: clamp(2rem, 8vw, 3rem);
+            }
+            .awards-table {
+                display: block;
+            }
+            .awards-table tbody {
+                display: block;
+            }
+            .awards-table tbody tr {
+                display: block;
+                margin-bottom: 2rem;
+            }
+            .award-title {
+                display: block;
+                padding: 0 0 0.75rem 0;
+                min-width: auto;
+                font-size: 1.3rem;
+            }
+            .award-description {
+                display: block;
+                padding: 0;
+                font-size: 1.05rem;
+            }
+            .awards-table tbody tr:not(:last-child) td {
+                padding-bottom: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-area">
+            <a href="index.html">
+                <img src="images/competitionlogo.png" alt="대회 로고" class="logo">
+            </a>
+        </div>
+        <nav class="navigation">
+            <a href="overview.html" class="nav-button">대회 개요</a>
+            <a href="purpose.html" class="nav-button">대회 목적</a>
+            <a href="evaluation.html" class="nav-button">평가 분야</a>
+            <a href="schedule.html" class="nav-button">대회 일정</a>
+            <a href="awards.html" class="nav-button">시상 내역</a>
+            <a href="directions.html" class="nav-button">찾아오시는 길</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <section class="awards-hero reveal" data-delay style="--delay: 0ms; --hero-bg: url('images/awardspageimage1.jpeg');">
+            <div class="awards-hero__inner">
+                <h1 class="awards-hero__title">시상 내역</h1>
+            </div>
+        </section>
+
+        <section class="awards-content">
+            <table class="awards-table reveal" data-delay style="--delay: 100ms;">
+                <tbody>
+                    <tr>
+                        <td class="award-title">그랜드 챔피언상</td>
+                        <td class="award-description">전체 부문 중 최고 전수를 기록한 팀</td>
+                    </tr>
+                    <tr>
+                        <td class="award-title">혁신 기술상</td>
+                        <td class="award-description">창의적 알고리즘, 센서 활용 등 기술 혁신성이 뛰어난 팀</td>
+                    </tr>
+                    <tr>
+                        <td class="award-title">안전 주행상</td>
+                        <td class="award-description">주행 안정성, 제어 신뢰성, 완성도가 우수한 팀</td>
+                    </tr>
+                    <tr>
+                        <td class="award-title">정밀 제어상</td>
+                        <td class="award-description">곡선 주행, 센서 인식, 주차 등 정밀 제어 구현이 탁월한 팀</td>
+                    </tr>
+                    <tr>
+                        <td class="award-title">미래 비전상</td>
+                        <td class="award-description">협업과제와 미래 자율주행 기술 발전 가능성이 높은 팀</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="awards-note reveal" data-delay style="--delay: 400ms;">
+                모든 수상팀에게는 상장과 트로피가 수여됩니다.
+            </div>
+        </section>
+    </div>
+
+    <script src="./main.js"></script>
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) entry.target.classList.add('is-visible');
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+    <footer class="footer">
+        <div class="footer-content">
+            <nav class="footer-nav">
+                <a href="overview.html">대회 개요</a>
+                <a href="purpose.html">대회 목적</a>
+                <a href="evaluation.html">평가 분야</a>
+                <a href="schedule.html">대회 일정</a>
+                <a href="awards.html" class="active">시상 내역</a>
+                <a href="directions.html">찾아오시는 길</a>
+            </nav>
+            <div class="footer-copyright">
+                Copyright(C) by FutureRoad. All Page content is property of FutureRoad
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

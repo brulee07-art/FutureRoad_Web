@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition Purpose - 대회 홍보 사이트</title>
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./text.css">
+    <style>
+        /* 페이지 전용 스타일 */
+        .container { max-width: none; width: 100%; margin: 0 auto; padding: 0; }
+        
+        /* 히어로 섹션 */
+        .purpose-hero {
+            position: relative;
+            width: 100%;
+            min-height: calc(68vh - 200px);
+            border-radius: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a, #1f2937);
+            box-shadow: 0 12px 28px rgba(2, 6, 23, 0.25);
+            isolation: isolate;
+            z-index: 1;
+        }
+        .purpose-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('images/perposepageimage1.jpg');
+            background-size: cover;
+            background-position: center 72%;
+            opacity: .85;
+            z-index: -2;
+            animation: imageSlide 15s ease-in-out infinite;
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+        }
+        .purpose-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('images/perposepageimage2.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: .35;
+            z-index: -2;
+            animation: imageSlide2 15s ease-in-out infinite;
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+        }
+        .purpose-hero__bg3 {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('images/perposepageimage3.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: .35;
+            z-index: -2;
+            animation: imageSlide3 15s ease-in-out infinite;
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+        }
+        @keyframes imageSlide {
+            0% {
+                transform: translateX(0);
+                opacity: .35;
+            }
+            30% {
+                transform: translateX(0);
+                opacity: .35;
+            }
+            33.33% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            96.67% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: .35;
+            }
+        }
+        @keyframes imageSlide2 {
+            0% {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            30% {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            33.33% {
+                transform: translateX(0);
+                opacity: .35;
+            }
+            63.33% {
+                transform: translateX(0);
+                opacity: .35;
+            }
+            66.67% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        @keyframes imageSlide3 {
+            0% {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            63.33% {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            66.67% {
+                transform: translateX(0);
+                opacity: .35;
+            }
+            96.67% {
+                transform: translateX(0);
+                opacity: .35;
+            }
+            100% {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+        }
+        .purpose-hero__overlay {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(1200px 400px at 20% 20%, rgba(255,255,255,.18), transparent 60%),
+                        linear-gradient(180deg, rgba(15,23,42,.25), rgba(15,23,42,.65));
+            z-index: -1;
+            pointer-events: none;
+        }
+        .purpose-hero__inner {
+            position: relative;
+            padding: 6rem 2.25rem;
+            display: grid;
+            place-items: center;
+            height: 100%;
+            text-align: center;
+            width: 100%;
+        }
+        .purpose-hero__title {
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            line-height: 1.1;
+            color: #ffffff;
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            margin: 0;
+            text-shadow: 0 6px 22px rgba(0,0,0,.35);
+        }
+
+        /* 목적 섹션 */
+        .purpose-content {
+            margin-top: 4rem;
+            margin-bottom: 6rem;
+            padding: 0 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .purpose-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+        .purpose-item {
+            position: relative;
+            padding: 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 2rem;
+            transition: all 0.3s ease;
+        }
+        .purpose-item:hover {
+            transform: translateX(8px);
+        }
+        .purpose-number {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #0c0ca7;
+            min-width: 60px;
+            flex-shrink: 0;
+            line-height: 1.2;
+        }
+        .purpose-text {
+            color: #1f2937;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            flex: 1;
+            padding-top: 0.25rem;
+        }
+        .purpose-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -1.5rem;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, #e5e7eb 0%, transparent 100%);
+        }
+        .purpose-item:last-child::after {
+            display: none;
+        }
+
+        /* 애니메이션 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal[data-delay] {
+            transition-delay: var(--delay, 0ms);
+        }
+
+        /* 반응형 */
+        @media (max-width: 900px) {
+            .purpose-hero {
+                min-height: 52vh;
+            }
+            .purpose-hero__title {
+                font-size: clamp(2rem, 8vw, 3rem);
+            }
+            .purpose-list {
+                gap: 2.5rem;
+            }
+            .purpose-item {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .purpose-number {
+                min-width: auto;
+                font-size: 1.75rem;
+            }
+            .purpose-text {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-area">
+            <a href="index.html">
+                <img src="images/competitionlogo.png" alt="대회 로고" class="logo">
+            </a>
+        </div>
+        <nav class="navigation">
+            <a href="overview.html" class="nav-button">대회 개요</a>
+            <a href="purpose.html" class="nav-button">대회 목적</a>
+            <a href="evaluation.html" class="nav-button">평가 분야</a>
+            <a href="schedule.html" class="nav-button">대회 일정</a>
+            <a href="awards.html" class="nav-button">시상 내역</a>
+            <a href="directions.html" class="nav-button">찾아오시는 길</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <section class="purpose-hero reveal" data-delay style="--delay: 0ms;">
+            <div class="purpose-hero__bg3"></div>
+            <div class="purpose-hero__overlay"></div>
+            <div class="purpose-hero__inner">
+                <h1 class="purpose-hero__title">대회 목적</h1>
+            </div>
+        </section>
+
+        <section class="purpose-content">
+            <div class="purpose-list">
+                <div class="purpose-item reveal" data-delay style="--delay: 100ms;">
+                    <div class="purpose-number">1</div>
+                    <p class="purpose-text">자율주행 기술의 원리를 직접 이해하고 체험하며, 미래형 모빌리티 기술에 대한 흥미와 탐구심을 기른다.</p>
+                </div>
+                <div class="purpose-item reveal" data-delay style="--delay: 200ms;">
+                    <div class="purpose-number">2</div>
+                    <p class="purpose-text">창의적인 아이디어와 문제 해결 능력을 발휘하여 실제 자율주행 시스템을 구현함으로써, 이론과 실습을 연계하는 경험을 쌓는다.</p>
+                </div>
+                <div class="purpose-item reveal" data-delay style="--delay: 300ms;">
+                    <div class="purpose-number">3</div>
+                    <p class="purpose-text">협동과 소통을 통해 팀워크의 중요성을 배우고, 미래 모빌리티 산업을 이끌어갈 인재로 성장할 수 있는 계기를 마련한다.</p>
+                </div>
+                <div class="purpose-item reveal" data-delay style="--delay: 400ms;">
+                    <div class="purpose-number">4</div>
+                    <p class="purpose-text">안전하고 지속 가능한 자율주행 기술 발전에 기여하며, 청소년의 과학기술 역량을 강화한다.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="./main.js"></script>
+    <script>
+        // 스크롤 리빌 애니메이션
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) entry.target.classList.add('is-visible');
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+    <footer class="footer">
+        <div class="footer-content">
+            <nav class="footer-nav">
+                <a href="overview.html">대회 개요</a>
+                <a href="purpose.html" class="active">대회 목적</a>
+                <a href="evaluation.html">평가 분야</a>
+                <a href="schedule.html">대회 일정</a>
+                <a href="awards.html">시상 내역</a>
+                <a href="directions.html">찾아오시는 길</a>
+            </nav>
+            <div class="footer-copyright">
+                Copyright(C) by FutureRoad. All Page content is property of FutureRoad
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

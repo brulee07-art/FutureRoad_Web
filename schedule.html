@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition Schedule - 대회 홍보 사이트</title>
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./text.css">
+    <style>
+        .container { max-width: none; width: 100%; margin: 0 auto; padding: 0; }
+        
+        /* 히어로 섹션 */
+        .schedule-hero {
+            position: relative;
+            width: 100%;
+            min-height: calc(68vh - 200px);
+            border-radius: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a, #1f2937);
+            box-shadow: 0 12px 28px rgba(2, 6, 23, 0.25);
+            isolation: isolate;
+            z-index: 1;
+            --hero-bg: url('images/schedulepageimage1.jpg');
+        }
+        .schedule-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--hero-bg);
+            background-size: cover;
+            background-position: center;
+            opacity: .35;
+            z-index: -2;
+        }
+        .schedule-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(1200px 400px at 20% 20%, rgba(255,255,255,.18), transparent 60%),
+                        linear-gradient(180deg, rgba(15,23,42,.25), rgba(15,23,42,.65));
+            z-index: -1;
+        }
+        .schedule-hero__inner {
+            position: relative;
+            padding: 6rem 2.25rem;
+            display: grid;
+            place-items: center;
+            height: 100%;
+            text-align: center;
+            width: 100%;
+        }
+        .schedule-hero__title {
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            line-height: 1.1;
+            color: #ffffff;
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            margin: 0;
+            text-shadow: 0 6px 22px rgba(0,0,0,.35);
+        }
+
+        /* 일정 섹션 */
+        .schedule-content {
+            margin-top: 4rem;
+            margin-bottom: 6rem;
+            padding: 0 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+        .schedule-item {
+            position: relative;
+            padding: 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 2rem;
+            transition: all 0.3s ease;
+        }
+        .schedule-item:hover {
+            transform: translateX(8px);
+        }
+        .schedule-time {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0c0ca7;
+            letter-spacing: 0.02em;
+            min-width: 180px;
+            flex-shrink: 0;
+            padding-top: 0.25rem;
+        }
+        .schedule-content-text {
+            font-size: 1.2rem;
+            color: #1f2937;
+            line-height: 1.8;
+            flex: 1;
+            padding-top: 0.25rem;
+        }
+        .schedule-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -1.25rem;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, #e5e7eb 0%, transparent 100%);
+        }
+        .schedule-item:last-child::after {
+            display: none;
+        }
+
+        /* 애니메이션 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal[data-delay] {
+            transition-delay: var(--delay, 0ms);
+        }
+
+        /* 반응형 */
+        @media (max-width: 900px) {
+            .schedule-hero {
+                min-height: 52vh;
+            }
+            .schedule-hero__title {
+                font-size: clamp(2rem, 8vw, 3rem);
+            }
+            .schedule-list {
+                gap: 2rem;
+            }
+            .schedule-item {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .schedule-time {
+                min-width: auto;
+                font-size: 1.2rem;
+            }
+            .schedule-content-text {
+                font-size: 1.05rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-area">
+            <a href="index.html">
+                <img src="images/competitionlogo.png" alt="대회 로고" class="logo">
+            </a>
+        </div>
+        <nav class="navigation">
+            <a href="overview.html" class="nav-button">대회 개요</a>
+            <a href="purpose.html" class="nav-button">대회 목적</a>
+            <a href="evaluation.html" class="nav-button">평가 분야</a>
+            <a href="schedule.html" class="nav-button">대회 일정</a>
+            <a href="awards.html" class="nav-button">시상 내역</a>
+            <a href="directions.html" class="nav-button">찾아오시는 길</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <section class="schedule-hero reveal" data-delay style="--delay: 0ms; --hero-bg: url('images/schedulepageimage1.jpg');">
+            <div class="schedule-hero__inner">
+                <h1 class="schedule-hero__title">대회 일정</h1>
+            </div>
+        </section>
+
+        <section class="schedule-content">
+            <div class="schedule-list">
+                <div class="schedule-item reveal" data-delay style="--delay: 100ms;">
+                    <div class="schedule-time">09:00~09:30</div>
+                    <div class="schedule-content-text">참가팀 등록 및 부스 배정</div>
+                </div>
+                <div class="schedule-item reveal" data-delay style="--delay: 150ms;">
+                    <div class="schedule-time">09:30~10:00</div>
+                    <div class="schedule-content-text">서영대학교 자동차관 탐방</div>
+                </div>
+                <div class="schedule-item reveal" data-delay style="--delay: 200ms;">
+                    <div class="schedule-time">10:00~10:20</div>
+                    <div class="schedule-content-text">팀 대표 미팅 및 대회 규정 공지</div>
+                </div>
+                <div class="schedule-item reveal" data-delay style="--delay: 250ms;">
+                    <div class="schedule-time">10:20~12:00</div>
+                    <div class="schedule-content-text">주행 데이터 수집 및 연습 주행(팀별 15분)</div>
+                </div>
+                <div class="schedule-item reveal" data-delay style="--delay: 300ms;">
+                    <div class="schedule-time">12:00~13:00</div>
+                    <div class="schedule-content-text">점심 식사</div>
+                </div>
+                <div class="schedule-item reveal" data-delay style="--delay: 350ms;">
+                    <div class="schedule-time">13:00~14:30</div>
+                    <div class="schedule-content-text">1차 주행</div>
+                </div>
+                <div class="schedule-item reveal" data-delay style="--delay: 400ms;">
+                    <div class="schedule-time">14:30~16:00</div>
+                    <div class="schedule-content-text">2차 주행</div>
+                </div>
+                <div class="schedule-item reveal" data-delay style="--delay: 450ms;">
+                    <div class="schedule-time">16:30~17:00</div>
+                    <div class="schedule-content-text">시상식</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="./main.js"></script>
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) entry.target.classList.add('is-visible');
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+    <footer class="footer">
+        <div class="footer-content">
+            <nav class="footer-nav">
+                <a href="overview.html">대회 개요</a>
+                <a href="purpose.html">대회 목적</a>
+                <a href="evaluation.html">평가 분야</a>
+                <a href="schedule.html" class="active">대회 일정</a>
+                <a href="awards.html">시상 내역</a>
+                <a href="directions.html">찾아오시는 길</a>
+            </nav>
+            <div class="footer-copyright">
+                Copyright(C) by FutureRoad. All Page content is property of FutureRoad
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

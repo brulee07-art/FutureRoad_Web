@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition Overview - 대회 홍보 사이트</title>
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./text.css">
+    <style>
+        /* 페이지 전용 스타일 (스코프 제한) */
+        .container { max-width: none; width: 100%; margin: 0 auto; padding: 0; }
+        .overview-hero {
+            position: relative;
+            width: 100%;
+            min-height: calc(68vh - 200px);
+            border-radius: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a, #1f2937);
+            box-shadow: 0 12px 28px rgba(2, 6, 23, 0.25);
+            isolation: isolate;
+            z-index: 1;
+            /* 기본 배경 이미지 변수 (나중에 섹션 style로 교체 가능) */
+            --hero-bg: url('images/indexpageimage1.jpg');
+        }
+        .overview-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--hero-bg); /* 섹션에서 --hero-bg로 교체 가능 */
+            background-size: cover;
+            background-position: center;
+            opacity: .40;
+            z-index: -2;
+        }
+        .overview-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(1200px 400px at 20% 20%, rgba(255,255,255,.18), transparent 60%),
+                        linear-gradient(180deg, rgba(15,23,42,.25), rgba(15,23,42,.65));
+            z-index: -1;
+        }
+        .overview-hero__inner {
+            position: relative;
+            padding: 6rem 2.25rem;
+            display: grid;
+            place-items: center;
+            height: 100%;
+            text-align: center;
+            width: 100%;
+        }
+        .overview-hero__title {
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            line-height: 1.1;
+            color: #ffffff;
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            margin: 0;
+            text-shadow: 0 6px 22px rgba(0,0,0,.35);
+        }
+        /* 아래로 넓게 쓰는 섹션 - 중앙 Y축 레이아웃 */
+        .overview-topics {
+            margin-top: calc(3.5rem - 60px);
+            position: relative;
+            --axis: calc(50% - 80px); /* 중앙에서 왼쪽으로 80px 이동 */
+            z-index: 0;
+        }
+        .overview-topics::before {
+            content: '';
+            position: absolute;
+            left: var(--axis);
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #e5e7eb 0%, rgba(12,12,167,0.25) 50%, #e5e7eb 100%);
+            background-size: 100% 200%;
+            animation: axisFlow 6s linear infinite;
+            opacity: 0.9;
+            z-index: -1;
+        }
+        .topic {
+            position: relative;
+            display: grid;
+            grid-template-columns: var(--axis) 1fr;
+            align-items: start;
+            gap: 0 0;
+            padding: 2rem 0;
+        }
+        .topic::before {
+            content: '';
+            position: absolute;
+            left: var(--axis);
+            top: 50%; /* 행의 세로 중앙 */
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            margin-left: -5px;
+            background: #0c0ca7;
+            border-radius: 999px;
+            box-shadow: 0 0 0 4px rgba(12,12,167,0.10);
+            animation: pulse 2.4s ease-out infinite;
+        }
+        /* 주최/주관(4번째) 항목 도트 약간 상향 보정 */
+        .overview-topics .topic:nth-child(4)::before { transform: translateY(calc(-50% - 6px)); }
+        .topic__label {
+            grid-column: 1 / 2;
+            justify-self: end;
+            padding-right: 1rem;
+            color: #0f172a;
+            font-weight: 900;
+            font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+            letter-spacing: -0.01em;
+        }
+        .topic__content {
+            grid-column: 2 / 3;
+            padding-left: 1.5rem;
+            color: #1f2937;
+            font-size: 1.05rem;
+            position: relative;
+            max-height: 64px; /* 기본 접힘 상태 (단일 라인 보장) */
+            overflow: hidden;
+            transition: max-height .6s ease;
+            will-change: max-height, transform, opacity;
+        }
+        /* 타임라인에 가까워질 때 상세 내용 펼침 */
+        .topic.is-near .topic__content { max-height: 1000px; overflow: visible; }
+        .topic__content .topic__dl { margin-top: .25rem; }
+        .topic__content, .topic__content p, .topic__dl dt, .topic__dl dd { line-height: 1.5; }
+        .topic__dl { display: grid; grid-template-columns: 120px 1fr; gap: .6rem 1.25rem; }
+        .topic__dl dt { color: #475569; font-weight: 700; }
+        .topic__dl dd { color: #0f172a; }
+        
+        /* 후원 로고 스타일 */
+        .sponsor-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-right: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .sponsor-logo {
+            height: 1.5em; /* 텍스트 크기에 맞춤 */
+            width: auto;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .sponsor-list {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* 리치 페이드 애니메이션 (스태거) */
+        .reveal { opacity: 0; transform: translateY(18px) scale(.98); }
+        .reveal.is-visible { opacity: 1; transform: translateY(0) scale(1); transition: opacity .8s ease, transform .8s ease; }
+        /* 상세 내용은 타임라인(축)에서 오른쪽으로 펼쳐지듯 슬라이드 */
+        .topic .topic__content { opacity: 0; transform: translateX(-16px); transition: opacity .8s ease, transform .8s ease; }
+        .topic.is-visible .topic__content { opacity: 1; transform: translateX(0); }
+        .topic .topic__label { opacity: 0; transform: translateX(-12px); transition: opacity .8s ease, transform .8s ease; }
+        .topic.is-visible .topic__label { opacity: 1; transform: translateX(0); }
+        .reveal[data-delay] { transition-delay: var(--delay, 0ms); }
+
+        @keyframes axisFlow {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 200%; }
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(12,12,167,0.18); }
+            70% { box-shadow: 0 0 0 8px rgba(12,12,167,0); }
+            100% { box-shadow: 0 0 0 0 rgba(12,12,167,0); }
+        }
+
+        /* 애니메이션 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity .7s ease, transform .7s ease;
+        }
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 반응형 */
+        @media (max-width: 900px) {
+            .overview-topics { --axis: 18%; }
+            .topic { grid-template-columns: 1fr; padding-left: 1rem; }
+            .topic::before { left: 18%; }
+            .topic__label { justify-self: start; padding-right: 0; margin-bottom: .25rem; }
+            .topic__content { padding-left: 0; }
+            .topic__dl { grid-template-columns: 1fr; }
+            .overview-hero { min-height: 52vh; }
+            .overview-hero__title { font-size: clamp(2rem, 8vw, 3rem); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-area">
+            <a href="index.html">
+                <img src="images/competitionlogo.png" alt="대회 로고" class="logo">
+            </a>
+        </div>
+        <nav class="navigation">
+            <a href="overview.html" class="nav-button">대회 개요</a>
+            <a href="purpose.html" class="nav-button">대회 목적</a>
+            <a href="evaluation.html" class="nav-button">평가 분야</a>
+            <a href="schedule.html" class="nav-button">대회 일정</a>
+            <a href="awards.html" class="nav-button">시상 내역</a>
+            <a href="directions.html" class="nav-button">찾아오시는 길</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <section class="overview-hero reveal" data-delay style="--delay: 0ms; --hero-bg: url('images/indexpageimage1.jpg');">
+            <div class="overview-hero__inner">
+                <h1 class="overview-hero__title">대회 개요</h1>
+            </div>
+        </section>
+
+        <section class="overview-topics">
+            <div class="topic reveal" data-delay style="--delay: 80ms;">
+                <div class="topic__label">행사명</div>
+                <div class="topic__content">제1회 FUTURE ROAD 자율주행자동차 경진대회</div>
+            </div>
+            <div class="topic reveal" data-delay style="--delay: 160ms;">
+                <div class="topic__label">대회일시</div>
+                <div class="topic__content">2025년 11월 15일(토)</div>
+            </div>
+            <div class="topic reveal" data-delay style="--delay: 240ms;">
+                <div class="topic__label">대회장소</div>
+                <div class="topic__content">서영대학교 자동차관 자율주행자동차 성능시험장</div>
+            </div>
+            <div class="topic reveal" data-delay style="--delay: 320ms;">
+                <div class="topic__label">주최 / 주관</div>
+                <div class="topic__content">
+                    <dl class="topic__dl">
+                        <dt>주최</dt><dd>FUTURE ROAD 교과연구회</dd>
+                        <dt>주관</dt><dd>FUTURE ROAD 운영위원회</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="topic reveal" data-delay style="--delay: 400ms;">
+                <div class="topic__label">후원</div>
+                <div class="topic__content">
+                    <div class="sponsor-list">
+                        <div class="sponsor-item">
+                            <img src="images/osoflogo.png" alt="주식회사 오소프" class="sponsor-logo">
+                            <span>주식회사 오소프</span>
+                        </div>
+                        <div class="sponsor-item">
+                            <img src="images/unilogo.png" alt="서영대학교" class="sponsor-logo">
+                            <span>서영대학교</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="./main.js"></script>
+    <script>
+        // 스크롤 리빌 애니메이션
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) entry.target.classList.add('is-visible');
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+        // 타임라인 근접 시 상세 내용 펼침
+        const topics = Array.from(document.querySelectorAll('.topic'));
+        function updateNearAxis() {
+            const viewportCenterY = window.innerHeight / 2;
+            topics.forEach((topic) => {
+                const rect = topic.getBoundingClientRect();
+                const topicCenterY = rect.top + rect.height / 2;
+                const distance = Math.abs(topicCenterY - viewportCenterY);
+                if (distance < 140) {
+                    topic.classList.add('is-near');
+                } else {
+                    topic.classList.remove('is-near');
+                }
+            });
+        }
+        let ticking = false;
+        function onScroll() {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    updateNearAxis();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', updateNearAxis);
+        updateNearAxis();
+    </script>
+    <footer class="footer">
+        <div class="footer-content">
+            <nav class="footer-nav">
+                <a href="overview.html" class="active">대회 개요</a>
+                <a href="purpose.html">대회 목적</a>
+                <a href="evaluation.html">평가 분야</a>
+                <a href="schedule.html">대회 일정</a>
+                <a href="awards.html">시상 내역</a>
+                <a href="directions.html">찾아오시는 길</a>
+            </nav>
+            <div class="footer-copyright">
+                Copyright(C) by FutureRoad. All Page content is property of FutureRoad
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+
