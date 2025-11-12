@@ -97,7 +97,7 @@
         }
         .main-hero__info-item::before {
             content: '▸';
-            color: #0c0ca7;
+            color: #60a5fa;
             font-size: 1.2em;
             font-weight: bold;
         }
@@ -139,13 +139,36 @@
         }
 
         /* 반응형 */
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
             .main-hero__inner {
                 padding: 4rem 1.5rem;
-                min-height: calc(100vh - 90px);
+                min-height: calc(100vh - 70px);
             }
             .main-hero__info {
                 gap: 0.75rem;
+            }
+            .main-hero__subtitle {
+                font-size: 0.95rem;
+                letter-spacing: 0.05em;
+            }
+            .main-hero__info-item {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            .main-hero__info-item::before {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-hero__inner {
+                padding: 3rem 1rem;
+            }
+            .main-hero__tagline {
+                margin-bottom: 2rem;
+            }
+            .main-hero__info {
+                margin-bottom: 2rem;
             }
         }
     </style>
