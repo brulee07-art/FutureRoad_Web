@@ -134,29 +134,129 @@ small {
     color: #6a6a6a;
 }
 
-/* 반응형 텍스트 */
+/* 반응형 텍스트 - 태블릿 */
+@media (max-width: 1024px) {
+    .main-title {
+        font-size: 2.25rem;
+    }
+    
+    .page-title {
+        font-size: 1.85rem;
+    }
+    
+    .main-text {
+        font-size: 1.05rem;
+    }
+    
+    h1 {
+        font-size: 1.85rem;
+    }
+    
+    h2 {
+        font-size: 1.6rem;
+    }
+    
+    h3 {
+        font-size: 1.35rem;
+    }
+}
+
+/* 반응형 텍스트 - 모바일 */
 @media (max-width: 768px) {
     .main-title {
         font-size: 2rem;
     }
-
+    
     .page-title {
         font-size: 1.75rem;
     }
-
+    
     .main-text {
         font-size: 1rem;
+        text-align: left;
     }
-
+    
+    .page-text {
+        font-size: 0.95rem;
+        text-align: left;
+    }
+    
+    p {
+        font-size: 0.95rem;
+    }
+    
     h1 {
         font-size: 1.75rem;
     }
-
+    
     h2 {
         font-size: 1.5rem;
     }
-
+    
     h3 {
         font-size: 1.25rem;
+    }
+    
+    h4 {
+        font-size: 1.125rem;
+    }
+    
+    h5 {
+        font-size: 1rem;
+    }
+    
+    h6 {
+        font-size: 0.95rem;
+    }
+    
+    ul, ol {
+        padding-left: 1.5rem;
+    }
+    
+    li {
+        font-size: 0.95rem;
+    }
+}
+
+/* 반응형 텍스트 - 작은 모바일 */
+@media (max-width: 480px) {
+    .main-title {
+        font-size: 1.75rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .main-text {
+        font-size: 0.95rem;
+    }
+    
+    .page-text {
+        font-size: 0.9rem;
+    }
+    
+    p {
+        font-size: 0.9rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.35rem;
+    }
+    
+    h3 {
+        font-size: 1.15rem;
+    }
+    
+    h4 {
+        font-size: 1.05rem;
+    }
+    
+    ul, ol {
+        padding-left: 1.25rem;
     }
 }
