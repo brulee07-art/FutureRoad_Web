@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="./index.css">
     <link rel="stylesheet" href="./text.css">
     <style>
-        /* 페이지 전용 스타일 (스코프 제한) */
         .container { max-width: none; width: 100%; margin: 0 auto; padding: 0; }
+        
         .overview-hero {
             position: relative;
             width: 100%;
@@ -19,14 +19,13 @@
             box-shadow: 0 12px 28px rgba(2, 6, 23, 0.25);
             isolation: isolate;
             z-index: 1;
-            /* 기본 배경 이미지 변수 (나중에 섹션 style로 교체 가능) */
             --hero-bg: url('images/indexpageimage1.jpg');
         }
         .overview-hero::before {
             content: '';
             position: absolute;
             inset: 0;
-            background-image: var(--hero-bg); /* 섹션에서 --hero-bg로 교체 가능 */
+            background-image: var(--hero-bg);
             background-size: cover;
             background-position: center;
             opacity: .40;
@@ -58,12 +57,13 @@
             margin: 0;
             text-shadow: 0 6px 22px rgba(0,0,0,.35);
         }
-        /* 아래로 넓게 쓰는 섹션 - 중앙 Y축 레이아웃 */
+        
         .overview-topics {
             margin-top: calc(3.5rem - 60px);
             position: relative;
-            --axis: calc(50% - 80px); /* 중앙에서 왼쪽으로 80px 이동 */
+            --axis: calc(50% - 80px);
             z-index: 0;
+            padding: 0 2rem;
         }
         .overview-topics::before {
             content: '';
@@ -90,7 +90,7 @@
             content: '';
             position: absolute;
             left: var(--axis);
-            top: 50%; /* 행의 세로 중앙 */
+            top: 50%;
             transform: translateY(-50%);
             width: 10px;
             height: 10px;
@@ -100,8 +100,8 @@
             box-shadow: 0 0 0 4px rgba(12,12,167,0.10);
             animation: pulse 2.4s ease-out infinite;
         }
-        /* 주최/주관(4번째) 항목 도트 약간 상향 보정 */
         .overview-topics .topic:nth-child(4)::before { transform: translateY(calc(-50% - 6px)); }
+        
         .topic__label {
             grid-column: 1 / 2;
             justify-self: end;
@@ -117,12 +117,11 @@
             color: #1f2937;
             font-size: 1.05rem;
             position: relative;
-            max-height: 64px; /* 기본 접힘 상태 (단일 라인 보장) */
+            max-height: 64px;
             overflow: hidden;
             transition: max-height .6s ease;
             will-change: max-height, transform, opacity;
         }
-        /* 타임라인에 가까워질 때 상세 내용 펼침 */
         .topic.is-near .topic__content { max-height: 1000px; overflow: visible; }
         .topic__content .topic__dl { margin-top: .25rem; }
         .topic__content, .topic__content p, .topic__dl dt, .topic__dl dd { line-height: 1.5; }
@@ -130,7 +129,6 @@
         .topic__dl dt { color: #475569; font-weight: 700; }
         .topic__dl dd { color: #0f172a; }
         
-        /* 후원 로고 스타일 */
         .sponsor-item {
             display: inline-flex;
             align-items: center;
@@ -139,7 +137,7 @@
             margin-bottom: 0.5rem;
         }
         .sponsor-logo {
-            height: 1.5em; /* 텍스트 크기에 맞춤 */
+            height: 1.5em;
             width: auto;
             object-fit: contain;
             display: inline-block;
@@ -152,10 +150,8 @@
             gap: 0;
         }
 
-        /* 리치 페이드 애니메이션 (스태거) */
         .reveal { opacity: 0; transform: translateY(18px) scale(.98); }
         .reveal.is-visible { opacity: 1; transform: translateY(0) scale(1); transition: opacity .8s ease, transform .8s ease; }
-        /* 상세 내용은 타임라인(축)에서 오른쪽으로 펼쳐지듯 슬라이드 */
         .topic .topic__content { opacity: 0; transform: translateX(-16px); transition: opacity .8s ease, transform .8s ease; }
         .topic.is-visible .topic__content { opacity: 1; transform: translateX(0); }
         .topic .topic__label { opacity: 0; transform: translateX(-12px); transition: opacity .8s ease, transform .8s ease; }
@@ -172,27 +168,26 @@
             100% { box-shadow: 0 0 0 0 rgba(12,12,167,0); }
         }
 
-        /* 애니메이션 */
-        .reveal {
-            opacity: 0;
-            transform: translateY(16px);
-            transition: opacity .7s ease, transform .7s ease;
-        }
-        .reveal.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
         /* 반응형 */
         @media (max-width: 900px) {
-            .overview-topics { --axis: 18%; }
+            .overview-topics { --axis: 18%; padding: 0 1rem; }
             .topic { grid-template-columns: 1fr; padding-left: 1rem; }
             .topic::before { left: 18%; }
-            .topic__label { justify-self: start; padding-right: 0; margin-bottom: .25rem; }
-            .topic__content { padding-left: 0; }
-            .topic__dl { grid-template-columns: 1fr; }
+            .topic__label { justify-self: start; padding-right: 0; margin-bottom: .25rem; font-size: 1.2rem; }
+            .topic__content { padding-left: 0; font-size: 1rem; }
+            .topic__dl { grid-template-columns: 1fr; gap: 0.5rem; }
             .overview-hero { min-height: 52vh; }
             .overview-hero__title { font-size: clamp(2rem, 8vw, 3rem); }
+            .overview-hero__inner { padding: 4rem 1.5rem; }
+        }
+
+        @media (max-width: 480px) {
+            .overview-topics { padding: 0 0.75rem; }
+            .topic { padding-left: 0.5rem; }
+            .topic__label { font-size: 1.1rem; }
+            .topic__content { font-size: 0.95rem; }
+            .sponsor-item { margin-right: 1rem; }
+            .sponsor-logo { height: 1.25em; }
         }
     </style>
 </head>
@@ -262,7 +257,6 @@
 
     <script src="./main.js"></script>
     <script>
-        // 스크롤 리빌 애니메이션
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) entry.target.classList.add('is-visible');
@@ -270,7 +264,6 @@
         }, { threshold: 0.12 });
         document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 
-        // 타임라인 근접 시 상세 내용 펼침
         const topics = Array.from(document.querySelectorAll('.topic'));
         function updateNearAxis() {
             const viewportCenterY = window.innerHeight / 2;
@@ -316,4 +309,3 @@
     </footer>
 </body>
 </html>
-
