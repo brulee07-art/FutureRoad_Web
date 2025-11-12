@@ -37,9 +37,8 @@ body {
     transform: translateY(-100%);
 }
 
-/* 로고 영역 - 모든 페이지에서 일관된 위치 (최우선 적용) */
-html body .header .logo-area,
-body .header .logo-area {
+/* 로고 영역 */
+.header .logo-area {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
@@ -56,8 +55,7 @@ body .header .logo-area {
     flex-shrink: 0 !important;
 }
 
-html body .header .logo-area a,
-body .header .logo-area a {
+.header .logo-area a {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -69,8 +67,7 @@ body .header .logo-area a {
     box-sizing: border-box !important;
 }
 
-html body .header .logo,
-body .header .logo {
+.header .logo {
     max-width: 100% !important;
     max-height: 100% !important;
     width: auto !important;
@@ -80,54 +77,28 @@ body .header .logo {
     transform: scale(0.85) !important;
 }
 
-/* 네비게이션 영역 - 모든 페이지에서 완전히 동일한 정렬 (최우선 적용) */
-html body .header .navigation,
-html body .header nav.navigation,
-body .header .navigation,
-body .header nav.navigation,
-.header .navigation,
-.header nav.navigation {
+/* 네비게이션 영역 - 데스크톱 */
+.header .navigation {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 26px !important; /* 정확히 26px로 고정 */
+    gap: 26px !important;
     position: absolute !important;
     left: 50% !important;
     top: 0 !important;
     bottom: 0 !important;
     transform: translateX(-50%) !important;
     margin: 0 !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
     padding: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
     width: auto !important;
-    min-width: auto !important;
-    max-width: none !important;
     height: 100% !important;
-    right: auto !important;
-    float: none !important;
-    clear: both !important;
     box-sizing: border-box !important;
     flex-shrink: 0 !important;
 }
 
-/* 네비게이션 버튼 - 모든 페이지에서 완전히 동일한 스타일 (최우선 적용) */
-html body .header .navigation .nav-button,
-html body .header nav.navigation .nav-button,
-html body .header .navigation a.nav-button,
-body .header .navigation .nav-button,
-body .header nav.navigation .nav-button,
-body .header .navigation a.nav-button,
-.header .navigation .nav-button,
-.header nav.navigation .nav-button,
-.header .navigation a.nav-button {
+/* 네비게이션 버튼 */
+.header .navigation .nav-button {
     padding: 0.75rem 2rem !important;
     text-decoration: none !important;
     color: #666666 !important;
@@ -141,10 +112,6 @@ body .header .navigation a.nav-button,
     display: inline-block !important;
     white-space: nowrap !important;
     margin: 0 !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
     vertical-align: middle !important;
     flex-shrink: 0 !important;
     flex-grow: 0 !important;
@@ -153,9 +120,8 @@ body .header .navigation a.nav-button,
     height: auto !important;
 }
 
-/* 네비게이션 버튼 호버 및 active 스타일 (최우선 적용) */
-body .header .navigation .nav-button::after,
-html body .header .navigation .nav-button::after {
+/* 네비게이션 버튼 호버 효과 */
+.header .navigation .nav-button::after {
     content: '';
     position: absolute;
     bottom: -3px;
@@ -168,50 +134,57 @@ html body .header .navigation .nav-button::after {
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-html body .header .navigation .nav-button:hover,
-html body .header nav.navigation .nav-button:hover,
-html body .header .navigation a.nav-button:hover,
-body .header .navigation .nav-button:hover,
-body .header nav.navigation .nav-button:hover,
-body .header .navigation a.nav-button:hover {
+.header .navigation .nav-button:hover {
     color: #0c0ca7 !important;
     text-decoration: none !important;
     transform: translateY(-3px) !important;
 }
-html body .header .navigation .nav-button:hover,
-html body .header nav.navigation .nav-button:hover,
-html body .header .navigation a.nav-button:hover,
-body .header .navigation .nav-button:hover,
-body .header nav.navigation .nav-button:hover,
-body .header .navigation a.nav-button:hover {
-    left: 0 !important;
-    margin-left: 0 !important;
-    transform: translateY(-3px) !important;
-}
 
-body .header .navigation .nav-button:hover::after,
-html body .header .navigation .nav-button:hover::after {
+.header .navigation .nav-button:hover::after {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* 네비게이션 정렬 보정 - 모든 페이지에서 완전히 동일한 정렬 */
-/* gap만 사용하고 margin은 사용하지 않음 */
-html body .header .navigation .nav-button,
-html body .header nav.navigation .nav-button,
-html body .header .navigation a.nav-button,
-body .header .navigation .nav-button,
-body .header nav.navigation .nav-button,
-body .header .navigation a.nav-button {
-    position: relative !important;
-    left: 0 !important;
-    top: 0 !important;
-    margin: 0 !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    transform: none !important;
-    float: none !important;
-    order: 0 !important;
+/* 모바일 메뉴 버튼 (기본 숨김) */
+.mobile-menu-button {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: auto;
+    z-index: 1001;
+}
+
+.mobile-menu-button span {
+    width: 25px;
+    height: 3px;
+    background-color: #1a1a1a;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    display: block;
+}
+
+.mobile-menu-button span:not(:last-child) {
+    margin-bottom: 5px;
+}
+
+/* 햄버거 메뉴 활성화 시 */
+.mobile-menu-button.active span:nth-child(1) {
+    transform: rotate(45deg) translate(8px, 8px);
+}
+
+.mobile-menu-button.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-button.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
 }
 
 /* 컨테이너 */
@@ -292,29 +265,106 @@ body .header .navigation a.nav-button {
     border-top: none;
 }
 
-/* 반응형 디자인 */
+/* 반응형 디자인 - 태블릿 */
+@media (max-width: 1024px) {
+    .header {
+        padding: 0 1.5rem !important;
+    }
+
+    .header .logo-area {
+        margin-left: 0 !important;
+    }
+
+    .header .logo-area a {
+        margin-left: 0 !important;
+    }
+
+    .header .navigation {
+        gap: 18px !important;
+    }
+
+    .header .navigation .nav-button {
+        padding: 0.65rem 1.5rem !important;
+        font-size: 0.95rem !important;
+    }
+}
+
+/* 반응형 디자인 - 모바일 */
 @media (max-width: 768px) {
     .header {
-        flex-direction: column;
-        height: auto;
-        padding: 1rem;
+        height: 70px !important;
+        padding: 0 1rem !important;
+        flex-wrap: nowrap !important;
     }
 
-    .logo-area {
-        width: 150px;
-        height: 50px;
-        margin-bottom: 1rem;
+    .header .logo-area {
+        width: 120px !important;
+        min-width: 120px !important;
+        max-width: 120px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        margin-left: 0 !important;
     }
 
-    .navigation {
-        flex-wrap: wrap;
-        margin-left: 0;
-        gap: 0.5rem;
+    .header .logo-area a {
+        margin-left: 0 !important;
     }
 
-    .nav-button {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
+    .header .logo {
+        transform: scale(0.75) !important;
+    }
+
+    /* 모바일 메뉴 버튼 표시 */
+    .mobile-menu-button {
+        display: flex;
+    }
+
+    /* 네비게이션을 모바일 메뉴로 변경 */
+    .header .navigation {
+        position: fixed !important;
+        left: 0 !important;
+        top: 70px !important;
+        right: 0 !important;
+        bottom: auto !important;
+        transform: translateX(0) !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        gap: 0 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        height: auto !important;
+        max-height: calc(100vh - 70px) !important;
+        overflow-y: auto !important;
+        padding: 1rem 0 !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transition: opacity 0.3s ease, visibility 0.3s ease !important;
+    }
+
+    /* 모바일 메뉴 활성화 */
+    .header .navigation.active {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    .header .navigation .nav-button {
+        padding: 1rem 1.5rem !important;
+        font-size: 1rem !important;
+        border-bottom: 1px solid #f0f0f0 !important;
+        text-align: left !important;
+        width: 100% !important;
+        display: block !important;
+    }
+
+    .header .navigation .nav-button:hover {
+        transform: translateY(0) !important;
+        background-color: #f8f9fa !important;
+    }
+
+    .header .navigation .nav-button::after {
+        display: none;
     }
 
     .container {
@@ -323,5 +373,57 @@ body .header .navigation a.nav-button {
 
     .content {
         padding: 2rem 1.5rem;
+    }
+
+    .footer {
+        padding: 1.5rem 1rem;
+    }
+
+    .footer-nav {
+        gap: 1rem;
+    }
+
+    .footer-nav a {
+        font-size: 0.9rem;
+    }
+
+    .footer-copyright {
+        font-size: 0.8rem;
+        margin-top: 1rem;
+    }
+}
+
+/* 반응형 디자인 - 작은 모바일 */
+@media (max-width: 480px) {
+    .header {
+        height: 65px !important;
+        padding: 0 0.75rem !important;
+    }
+
+    .header .logo-area {
+        width: 100px !important;
+        min-width: 100px !important;
+        max-width: 100px !important;
+        height: 35px !important;
+        min-height: 35px !important;
+        max-height: 35px !important;
+    }
+
+    .header .navigation {
+        top: 65px !important;
+        max-height: calc(100vh - 65px) !important;
+    }
+
+    .header .navigation .nav-button {
+        padding: 0.875rem 1.25rem !important;
+        font-size: 0.95rem !important;
+    }
+
+    .container {
+        padding: 0.75rem;
+    }
+
+    .content {
+        padding: 1.5rem 1rem;
     }
 }
