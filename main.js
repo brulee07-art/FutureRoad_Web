@@ -1,5 +1,8 @@
 // DOM이 로드된 후 실행
 document.addEventListener('DOMContentLoaded', function() {
+    // 모바일 메뉴 토글 기능
+    initMobileMenu();
+    
     // 현재 페이지 파일명 추출 함수
     function getCurrentPageFile() {
         const pathname = window.location.pathname;
@@ -180,4 +183,58 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // 모바일 메뉴 초기화 함수
+    function initMobileMenu() {
+        const header = document.querySelector('.header');
+        const navigation = document.querySelector('.navigation');
+        
+        if (!header || !navigation) return;
+
+        // 모바일 메뉴 버튼이 없으면 생성
+        let menuButton = header.querySelector('.mobile-menu-button');
+        if (!menuButton) {
+            menuButton = document.createElement('button');
+            menuButton.className = 'mobile-menu-button';
+            menuButton.setAttribute('aria-label', '메뉴');
+            menuButton.innerHTML = '<span></span><span></span><span></span>';
+            header.appendChild(menuButton);
+        }
+
+        // 메뉴 버튼 클릭 이벤트
+        menuButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.classList.toggle('active');
+            navigation.classList.toggle('active');
+        });
+
+        // 메뉴 외부 클릭 시 닫기
+        document.addEventListener('click', function(e) {
+            if (!navigation.contains(e.target) && !menuButton.contains(e.target)) {
+                menuButton.classList.remove('active');
+                navigation.classList.remove('active');
+            }
+        });
+
+        // 메뉴 링크 클릭 시 메뉴 닫기
+        const navLinks = navigation.querySelectorAll('.nav-button');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                menuButton.classList.remove('active');
+                navigation.classList.remove('active');
+            });
+        });
+
+        // 윈도우 리사이즈 시 메뉴 상태 초기화
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if (window.innerWidth > 768) {
+                    menuButton.classList.remove('active');
+                    navigation.classList.remove('active');
+                }
+            }, 250);
+        });
+    }
 });
