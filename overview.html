@@ -168,26 +168,108 @@
             100% { box-shadow: 0 0 0 0 rgba(12,12,167,0); }
         }
 
-        /* 반응형 */
+        /* 반응형 - 모바일 */
         @media (max-width: 900px) {
-            .overview-topics { --axis: 18%; padding: 0 1rem; }
-            .topic { grid-template-columns: 1fr; padding-left: 1rem; }
-            .topic::before { left: 18%; }
-            .topic__label { justify-self: start; padding-right: 0; margin-bottom: .25rem; font-size: 1.2rem; }
-            .topic__content { padding-left: 0; font-size: 1rem; }
-            .topic__dl { grid-template-columns: 1fr; gap: 0.5rem; }
-            .overview-hero { min-height: 52vh; }
-            .overview-hero__title { font-size: clamp(2rem, 8vw, 3rem); }
-            .overview-hero__inner { padding: 4rem 1.5rem; }
+            .overview-topics { 
+                --axis: 0px; 
+                padding: 0 1rem; 
+            }
+            
+            /* 축 라인 숨기기 */
+            .overview-topics::before { 
+                display: none; 
+            }
+            
+            .topic { 
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1.5rem 0;
+                border-left: 4px solid #0c0ca7;
+                padding-left: 1rem;
+                gap: 0.5rem;
+            }
+            
+            /* 파란 점 숨기기 */
+            .topic::before { 
+                display: none;
+            }
+            
+            .topic__label { 
+                font-size: 1.3rem;
+                font-weight: 800;
+                color: #0c0ca7;
+                margin-bottom: 0.25rem;
+                padding-right: 0;
+            }
+            
+            .topic__content { 
+                padding-left: 0;
+                font-size: 1rem;
+                max-height: none;
+                overflow: visible;
+                width: 100%;
+            }
+            
+            .topic__dl { 
+                grid-template-columns: 1fr; 
+                gap: 0.5rem;
+                width: 100%;
+            }
+            
+            .topic__dl dt {
+                font-weight: 700;
+                color: #475569;
+                margin-top: 0.5rem;
+            }
+            
+            .topic__dl dd {
+                margin-left: 0;
+                padding-left: 0;
+            }
+            
+            .overview-hero { 
+                min-height: 52vh; 
+            }
+            
+            .overview-hero__title { 
+                font-size: clamp(2rem, 8vw, 3rem); 
+            }
+            
+            .overview-hero__inner { 
+                padding: 4rem 1.5rem; 
+            }
+            
+            .sponsor-item {
+                margin-right: 1.5rem;
+            }
         }
 
         @media (max-width: 480px) {
-            .overview-topics { padding: 0 0.75rem; }
-            .topic { padding-left: 0.5rem; }
-            .topic__label { font-size: 1.1rem; }
-            .topic__content { font-size: 0.95rem; }
-            .sponsor-item { margin-right: 1rem; }
-            .sponsor-logo { height: 1.25em; }
+            .overview-topics { 
+                padding: 0 0.75rem; 
+            }
+            
+            .topic { 
+                padding: 1.25rem 0 1.25rem 0.75rem;
+                border-left-width: 3px;
+            }
+            
+            .topic__label { 
+                font-size: 1.15rem;
+            }
+            
+            .topic__content { 
+                font-size: 0.95rem;
+            }
+            
+            .sponsor-item { 
+                margin-right: 1rem;
+            }
+            
+            .sponsor-logo { 
+                height: 1.25em;
+            }
         }
     </style>
 </head>
@@ -204,11 +286,9 @@
             <a href="evaluation.html" class="nav-button">평가 분야</a>
             <a href="schedule.html" class="nav-button">대회 일정</a>
             <a href="awards.html" class="nav-button">시상 내역</a>
-            <a href="gallery.html" class="nav-button current-page">1회 대회 모습</a>
+            <a href="gallery.html" class="nav-button">1회 대회 모습</a>
             <a href="directions.html" class="nav-button">찾아오시는 길</a>
         </nav>
-
-
     </div>
 
     <div class="container">
