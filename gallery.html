@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사진 갤러리 - 제1회 FUTURE ROAD 자율주행자동차 경진대회</title>
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./text.css">
+    <link rel="stylesheet" href="./gallery.css"> 
+    <style>
+        /* index.html에서 가져온 공통 스타일 */
+        .container { max-width: none; width: 100%; margin: 0 auto; padding: 0; }
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s ease, transform 0.8s ease; }
+        .reveal.is-visible { opacity: 1; transform: translateY(0); }
+        .reveal[data-delay] { transition-delay: var(--delay, 0ms); }
+    </style>
+</head>
+<body class="sub-page gallery-page">
+    <div class="header">
+        <div class="logo-area">
+            <a href="index.html">
+                <img src="images/competitionlogo.png" alt="대회 로고" class="logo">
+            </a>
+        </div>
+        <nav class="navigation">
+            <a href="overview.html" class="nav-button">대회 개요</a>
+            <a href="purpose.html" class="nav-button">대회 목적</a>
+            <a href="evaluation.html" class="nav-button">평가 분야</a>
+            <a href="schedule.html" class="nav-button">대회 일정</a>
+            <a href="awards.html" class="nav-button">시상 내역</a>
+            <a href="directions.html" class="nav-button">찾아오시는 길</a>
+            <a href="gallery.html" class="nav-button current-page">갤러리</a> 
+        </nav>
+    </div>
+
+    <div class="container">
+        <section class="page-title-section reveal" data-delay style="--delay: 0ms;">
+            <h2 class="page-title reveal" data-delay style="--delay: 100ms;">경진대회 사진 갤러리</h2>
+            <p class="page-subtitle reveal" data-delay style="--delay: 200ms;">
+                대회 현장의 생생한 모습과 열정적인 순간들을 확인해보세요.
+            </p>
+        </section>
+
+        <section class="gallery-section reveal" data-delay style="--delay: 300ms;">
+            <div class="image-grid">
+                <div class="gallery-item">
+                    <img src="images/gallery/image1.jpg" alt="대회 시상식">
+                </div>
+                <div class="gallery-item">
+                    <img src="images/gallery/image2.jpg" alt="자율주행차 트랙 주행">
+                </div>
+                <div class="gallery-item">
+                    <img src="images/gallery/image3.jpg" alt="팀원 회의 모습">
+                </div>
+                <div class="gallery-item">
+                    <img src="images/gallery/image4.jpg" alt="심사위원 평가">
+                </div>
+                <div class="gallery-item">
+                    <img src="images/gallery/image5.jpg" alt="대회 준비 모습">
+                </div>
+                
+                </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <nav class="footer-nav">
+                <a href="overview.html">대회 개요</a>
+                <a href="purpose.html">대회 목적</a>
+                <a href="evaluation.html">평가 분야</a>
+                <a href="schedule.html">대회 일정</a>
+                <a href="awards.html">시상 내역</a>
+                <a href="directions.html">찾아오시는 길</a>
+                <a href="gallery.html">갤러리</a> </nav>
+            <div class="footer-copyright">
+                Copyright(C) by FutureRoad. All Page content is property of FutureRoad
+            </div>
+        </div>
+    </footer>
+
+    <script src="./main.js"></script>
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) entry.target.classList.add('is-visible');
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>
