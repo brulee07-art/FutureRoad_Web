@@ -68,6 +68,8 @@
             margin-left: auto;
             margin-right: auto;
         }
+        
+        /* 데스크톱 테이블 */
         .evaluation-table {
             width: 100%;
             border-collapse: separate;
@@ -113,6 +115,12 @@
             color: #0c0ca7;
             font-size: 1.1rem;
         }
+        
+        /* 모바일 카드 스타일 (기본 숨김) */
+        .evaluation-cards {
+            display: none;
+        }
+        
         .evaluation-note {
             background: #f8fafc;
             border-left: 4px solid #0c0ca7;
@@ -138,22 +146,108 @@
             transition-delay: var(--delay, 0ms);
         }
 
-        /* 반응형 */
-        @media (max-width: 900px) {
+        /* 반응형 - 태블릿 */
+        @media (max-width: 1024px) {
+            .evaluation-content {
+                padding: 0 1.5rem;
+            }
+            
+            .evaluation-table th,
+            .evaluation-table td {
+                padding: 1.25rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .evaluation-table td:first-child {
+                font-size: 1.05rem;
+            }
+        }
+
+        /* 반응형 - 모바일 */
+        @media (max-width: 768px) {
             .evaluation-hero {
                 min-height: 52vh;
             }
             .evaluation-hero__title {
                 font-size: clamp(2rem, 8vw, 3rem);
             }
-            .evaluation-table {
-                display: block;
-                overflow-x: auto;
+            .evaluation-hero__inner {
+                padding: 4rem 1.5rem;
             }
-            .evaluation-table th,
-            .evaluation-table td {
+            
+            .evaluation-content {
+                margin-top: 3rem;
+                margin-bottom: 4rem;
+                padding: 0 1rem;
+            }
+            
+            /* 테이블 숨기기 */
+            .evaluation-table {
+                display: none;
+            }
+            
+            /* 카드 스타일 표시 */
+            .evaluation-cards {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .evaluation-card {
+                background: #ffffff;
+                border-radius: 12px;
+                padding: 1.5rem;
+                box-shadow: 0 4px 12px rgba(2, 6, 23, 0.08);
+                border-left: 4px solid #0c0ca7;
+            }
+            
+            .evaluation-card__title {
+                font-size: 1.3rem;
+                font-weight: 700;
+                color: #0c0ca7;
+                margin-bottom: 0.75rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .evaluation-card__content {
+                font-size: 1rem;
+                color: #1f2937;
+                line-height: 1.7;
+            }
+            
+            .evaluation-note {
                 padding: 1.25rem 1.5rem;
                 font-size: 0.95rem;
+            }
+        }
+
+        /* 반응형 - 작은 모바일 */
+        @media (max-width: 480px) {
+            .evaluation-content {
+                padding: 0 0.75rem;
+            }
+            
+            .evaluation-cards {
+                gap: 1.25rem;
+            }
+            
+            .evaluation-card {
+                padding: 1.25rem;
+            }
+            
+            .evaluation-card__title {
+                font-size: 1.2rem;
+            }
+            
+            .evaluation-card__content {
+                font-size: 0.95rem;
+            }
+            
+            .evaluation-note {
+                padding: 1rem 1.25rem;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -171,10 +265,9 @@
             <a href="evaluation.html" class="nav-button">평가 분야</a>
             <a href="schedule.html" class="nav-button">대회 일정</a>
             <a href="awards.html" class="nav-button">시상 내역</a>
-            <a href="gallery.html" class="nav-button current-page">1회 대회 모습</a>
-            <a href="directions.html" class="nav-button">찾아오시는 길</a>
+            <a href="gallery.html" class="nav-button">1회 대회 모습</a>
+            <a href="directions.html">찾아오시는 길</a>
         </nav>
-
     </div>
 
     <div class="container">
@@ -185,6 +278,7 @@
         </section>
 
         <section class="evaluation-content">
+            <!-- 데스크톱용 테이블 -->
             <table class="evaluation-table reveal" data-delay style="--delay: 100ms;">
                 <thead>
                     <tr>
@@ -211,7 +305,28 @@
                     </tr>
                 </tbody>
             </table>
-            <div class="evaluation-note reveal" data-delay style="--delay: 200ms;">
+
+            <!-- 모바일용 카드 -->
+            <div class="evaluation-cards">
+                <div class="evaluation-card reveal" data-delay style="--delay: 100ms;">
+                    <div class="evaluation-card__title">혁신기술</div>
+                    <div class="evaluation-card__content">창의적이고 독창적인 알고리즘, 센서 활용 등 새로운 기술 구현</div>
+                </div>
+                <div class="evaluation-card reveal" data-delay style="--delay: 150ms;">
+                    <div class="evaluation-card__title">안전주행</div>
+                    <div class="evaluation-card__content">장애물 회피, 속도 제어 등 안정적인 주행 완성도 중심</div>
+                </div>
+                <div class="evaluation-card reveal" data-delay style="--delay: 200ms;">
+                    <div class="evaluation-card__title">정밀제어</div>
+                    <div class="evaluation-card__content">곡선 주행, 차선인식, 주차 등 정밀한 제어 기술 구현</div>
+                </div>
+                <div class="evaluation-card reveal" data-delay style="--delay: 250ms;">
+                    <div class="evaluation-card__title">미래비전</div>
+                    <div class="evaluation-card__content">팀워크와 협력 과정이 우수하고, 미래 자율주행 기술 발전 가능성이 큰 아이디어 제시</div>
+                </div>
+            </div>
+
+            <div class="evaluation-note reveal" data-delay style="--delay: 300ms;">
                 ※ 모든 참가팀은 기술 구현력, 창의성, 협업, 안정성, 협업 역량 등을 종합적으로 평가합니다.
             </div>
         </section>
@@ -228,7 +343,6 @@
     </script>
     <footer class="footer">
         <div class="footer-content">
-           
             <nav class="footer-nav">
                 <a href="overview.html">대회 개요</a>
                 <a href="purpose.html">대회 목적</a>
@@ -245,5 +359,3 @@
     </footer>
 </body>
 </html>
-
-
