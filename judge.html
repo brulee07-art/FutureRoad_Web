@@ -1,0 +1,96 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow"><meta property="og:title" content="퓨처로드 모의 심사실"><meta property="og:description" content="개인 심사 코드로 입장하세요."><title>퓨처로드 모의 심사실</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6f2;color:#172c29;font:16px/1.6 system-ui,sans-serif;word-break:keep-all}main{max-width:700px;margin:auto;padding:20px 15px 60px}header,.card{border-radius:16px;padding:20px;background:white;border:1px solid #d7e2da;margin:0 0 14px}header{background:#173d36;color:white;border:0}header small{color:#cce5a8;font-weight:750;letter-spacing:.08em}h1{font-size:1.6rem;margin:4px 0}h2{font-size:1.22rem;margin:0 0 8px}p{margin:5px 0 14px}small,.hint{font-size:.88rem}.hint{color:#49615b}.stack{display:grid;gap:12px}input:not([type=checkbox]),textarea,select{width:100%;font:inherit;padding:10px;color:inherit;background:#fff;border:1px solid #809991;border-radius:7px}textarea{resize:vertical}button{font:inherit;font-weight:650;cursor:pointer;border-radius:8px;padding:10px 14px;border:1px solid #b9c9c2;color:#183e35;background:#f3f7f3}button.primary{background:#235443;color:white;border-color:#235443}button:disabled{opacity:.6;cursor:wait}.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.bar>*{flex:1}label strong{display:block;margin-bottom:4px}fieldset{min-width:0;margin:10px 0 14px;border:1px solid #cbd9ce;border-radius:10px;padding:10px 12px}legend{font-weight:bold}.choice{display:flex;gap:10px;align-items:baseline;margin:0;padding:9px 0;border-bottom:1px solid #edf0eb}.choice:last-child{border:0}.choice span{flex:1}.choice b{font-size:.85em;white-space:nowrap;color:#365a46}input[type=checkbox]{flex:none;width:19px;height:19px;align-self:flex-start;margin:4px 0 0;accent-color:#235443}.verify{background:#f1f6ec;padding:10px 12px;border-radius:8px}.nav{display:grid;gap:9px;grid-template-columns:1fr 1fr}.nav button[aria-pressed=true]{background:#234f42;color:white}#message{margin-bottom:12px;padding:0 4px;font-weight:650;color:#204932}#message.error{color:#8e2926}.school{color:#d5e5dd;font-size:.92rem}.meter{font-weight:750;margin:12px 0}.solo{max-width:480px}[hidden]{display:none!important}
+</style></head><body><main>
+<header><small>FUTUREROAD 2026 · 시험 운영</small><h1>퓨처로드 모의 심사실</h1><div id="identity" class="school">제2회 자율주행 자동차 제작 캠프</div></header>
+<div id="message" role="status" aria-live="polite"></div>
+<section class="card solo" id="login"><h2>심사위원 입장</h2><p>진행본부에서 개별로 받은 구글 심사실 시험용 코드를 입력하세요.</p><form id="entry" class="stack"><label><strong>개인 코드</strong><input id="code" type="password" autocomplete="off" spellcheck="false" maxlength="64" required></label><button class="primary">심사실 입장</button></form></section>
+<section class="card" id="assign" hidden><h2>내 평가팀</h2><p id="progress" class="hint"></p><label><strong>학교와 팀 선택</strong><select id="team"></select></label><div class="bar"><button id="reload">내 기록 다시 불러오기</button><button id="exit">나가기</button></div></section>
+<section class="card" id="ballot" hidden><h2 id="teamTitle"></h2><div id="tabs" class="nav"></div><p id="evidence" class="hint"></p><form id="evaluation"><div id="groups"></div><div id="runs" class="stack" hidden><strong>실증 주행 기록 <small>(선택)</small></strong><label>1차 기록<input maxlength="60"></label><label>2차 기록<input maxlength="60"></label><label>우수 유효 기록<input maxlength="60"></label><p class="hint">단위 또는 무효 여부를 함께 적으세요. 모의 점수에는 합산하지 않습니다.</p></div><label><strong>관찰 근거 또는 메모 <small>(선택)</small></strong><textarea id="memo" maxlength="700" rows="2"></textarea></label><div class="meter" id="sum"></div><label class="choice verify"><input id="reviewed" type="checkbox" required><span>이 팀의 5개 관점을 검토했으며 위 내용으로 저장합니다.</span></label><div class="bar"><button class="primary" id="save">이 영역 저장</button></div></form><div role="status" aria-live="polite" id="receipt"></div></section></main>
+<script>
+'use strict';
+const by=id=>document.getElementById(id);
+const names={tech:'융합교육',pitch:'창업교육 · 피칭'};
+let room=null, credential='', activeTeam='', activeSection='pitch', dirty=false, busy=false;
+function tell(msg,error=false){by('message').textContent=msg;by('message').className=error?'error':'';}
+function lock(state){busy=state; document.querySelectorAll('button,select,input,textarea').forEach(el=>el.disabled=state);
+  if (!state && room?.closed) by('evaluation').querySelectorAll('button,input,textarea').forEach(el=>el.disabled=true);}
+async function rpc(action, code, ballot) {
+  const failed = action === 'commitSection'
+    ? '저장 결과를 확인하지 못했습니다. 내 기록 다시 불러오기를 눌러 확인하세요.'
+    : '연결할 수 없습니다. 인터넷 연결과 심사실 배포 상태를 확인하세요.';
+  let result;
+  try {
+    const response = await fetch('/api/camp-judge', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      credentials: 'omit', cache: 'no-store', redirect: 'error',
+      body: JSON.stringify({action, code, ballot})
+    });
+    result = await response.json();
+    if (!response.ok && result.ok !== false) throw Error();
+  } catch { throw Error(failed); }
+  if (!result.ok) throw Error(result.message || failed);
+  return result.data;
+}
+async function work(fn){if(busy)return;lock(true);try{await fn();}catch(e){const msg=String(e.message||e).replace(/^(?:Exception|Error):\s*/, '');tell(msg,true);by('receipt').textContent=msg;}finally{lock(false);}}
+function mayLeave(){return !dirty||window.confirm('저장하지 않은 변경 사항이 있습니다. 계속할까요?');}
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+function element(tag,text,cls){const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n;}
+function entries(){return room.external?['tech','pitch']:['pitch'];}
+function completed(t){return entries().every(k=>room.records[t.id][k].rev>0);}
+function refreshTeams(){
+  by('team').replaceChildren(new Option('평가할 팀을 선택하세요',''));
+  room.teams.forEach(t=>{const marks=entries().filter(k=>room.records[t.id][k].rev>0);
+    const status=completed(t)?'완료':marks.length?'일부 저장':'미평가';
+    by('team').add(new Option(t.school+' · '+t.name+' ('+status+')',t.id));});
+  by('team').value=activeTeam;
+  by('progress').textContent='평가 완료 '+room.teams.filter(completed).length+' / 배정 '+room.teams.length+'팀';
+}
+function display(){
+  by('login').hidden=true;by('assign').hidden=false;by('identity').textContent=room.label;
+  refreshTeams();draw();
+}
+function draw(){
+  by('ballot').hidden=!activeTeam;by('receipt').textContent='';dirty=false;if(!activeTeam)return;
+  const t=room.teams.find(x=>x.id===activeTeam),record=room.records[activeTeam][activeSection];
+  by('teamTitle').textContent=t.name+' · '+t.school;
+  const tabs=by('tabs');tabs.replaceChildren();entries().forEach(k=>{
+    const r=room.records[activeTeam][k];const b=element('button',names[k]+(r.rev?' · 저장됨':''));b.type='button';b.setAttribute('aria-pressed',String(k===activeSection));
+    b.onclick=()=>{if(k!==activeSection&&mayLeave()){activeSection=k;tell('');draw();}};tabs.append(b);});
+  by('evidence').textContent=activeSection==='tech'?'차량 제작 과정, 테스트 기록, 최종 실증에서 확인한 행동에 체크하세요.':'4분 발표, 질의응답, 피칭 활동지에서 확인한 행동에 체크하세요.';
+  const groups=by('groups');groups.replaceChildren();room.rubric[activeSection].forEach((c,i)=>{
+    const f=document.createElement('fieldset');f.append(element('legend',String(i+1+(activeSection==='pitch'?5:0)).padStart(2,'0')+'  '+c.name),element('small',c.help,'hint'));
+    c.items.forEach((line,j)=>{const l=element('label','','choice'),box=document.createElement('input');box.type='checkbox';box.className='item';box.checked=record.checks[i*3+j];
+      l.append(box,element('span',line),element('b',room.weights[j]+'점'));f.append(l);});
+    const l=element('label','','choice hint'),zero=document.createElement('input');zero.type='checkbox';zero.className='zero';
+    zero.checked=record.rev>0&&!record.checks.slice(i*3,i*3+3).some(Boolean);
+    l.append(zero,element('span','확인한 항목 없음 (0점)'));f.append(l);
+    f.oninput=e=>{if(e.target===zero && zero.checked)f.querySelectorAll('.item').forEach(x=>x.checked=false);
+      if(e.target.className==='item' && e.target.checked)zero.checked=false;};groups.append(f);});
+  by('memo').value=record.memo;by('runs').hidden=activeSection!=='tech';
+  document.querySelectorAll('#runs input').forEach((el,i)=>el.value=record.runs[i]);
+  by('reviewed').checked=false;by('save').textContent=record.rev?'이 영역 수정 저장':'이 영역 저장';
+  by('receipt').textContent=record.rev?'저장된 평가를 불러왔습니다.':'아직 저장한 평가가 없습니다.';if(room.closed){by('receipt').textContent='마감된 모의 심사입니다.';lock(false);}score();
+}
+function checklist(){return Array.from(document.querySelectorAll('#groups .item'),x=>x.checked);}
+function score(){const s=checklist().reduce((n,b,i)=>n+(b?room.weights[i%3]:0),0);by('sum').textContent='체크 점수 '+s+' / 50점';}
+by('entry').onsubmit=e=>{e.preventDefault();work(async()=>{const code=by('code').value;const result=await rpc('enterRoom',code);
+  credential=code;room=result;by('code').value='';tell('');display();});};
+by('team').onchange=()=>{const next=by('team').value;if(!mayLeave()){by('team').value=activeTeam;return;}
+ activeTeam=next;activeSection=room.external?'tech':'pitch';tell('');draw();};
+by('reload').onclick=()=>{if(!mayLeave())return;work(async()=>{room=await rpc('enterRoom',credential);display();tell('저장된 기록을 다시 불러왔습니다.');});};
+by('exit').onclick=()=>{if(!mayLeave())return;room=null;credential='';activeTeam='';activeSection='pitch';dirty=false;by('groups').replaceChildren();by('memo').value='';by('assign').hidden=true;by('ballot').hidden=true;by('login').hidden=false;by('identity').textContent='제2회 자율주행 자동차 제작 캠프';tell('퇴장했습니다.');by('code').focus();};
+by('evaluation').oninput=()=>{dirty=true;by('receipt').textContent='저장 전입니다.';score();};
+by('evaluation').onsubmit=e=>{e.preventDefault();if(!by('reviewed').checked)return;
+ const zeros=Array.from(document.querySelectorAll('#groups .zero'),el=>el.checked);
+ const marks=checklist();
+ const missing=zeros.findIndex((z,i)=>!z&&!marks.slice(i*3,i*3+3).some(Boolean));
+ if(missing>=0){const msg=room.rubric[activeSection][missing].name+' 관점에서 확인한 행동 또는 ‘확인한 항목 없음’을 선택하세요.';
+ tell(msg,true);by('receipt').textContent=msg;by('groups').children[missing].querySelector('input').focus();return;}
+ const rec=room.records[activeTeam][activeSection];
+ const data={team:activeTeam,section:activeSection,checks:marks,zeros,reviewed:true,memo:by('memo').value,runs:Array.from(document.querySelectorAll('#runs input'),el=>el.value),rev:rec.rev};
+ work(async()=>{const saved=await rpc('commitSection',credential,data);
+   Object.assign(rec,{rev:saved.rev,score:saved.score,checks:data.checks,memo:data.memo,runs:data.runs});refreshTeams();draw();
+   const msg=room.teams.find(x=>x.id===activeTeam).name+' · '+names[activeSection]+' '+saved.score+'점 저장 완료';
+   tell(msg);by('receipt').textContent=msg;});};
+</script></body></html>
