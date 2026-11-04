@@ -3,6 +3,7 @@ const bar=document.querySelector('.phasebar');
 const stories=Array.from(document.querySelectorAll('.story'));
 const buttons=stories.map((story,i)=>{
  const b=document.createElement('button'); b.type='button'; b.textContent=story.dataset.step;
+ story.id='activity-'+(i+1); b.setAttribute('aria-controls',story.id);
  b.addEventListener('click',()=>select(i)); bar.append(b); return b;
 });
 function select(i){stories.forEach((s,j)=>{s.hidden=j!==i;buttons[j].setAttribute('aria-pressed',String(i===j));});
@@ -25,3 +26,31 @@ play.onclick=()=>{if(playing){stop();return;}if(t>=total)t=0;playing=true;play.t
 reset.onclick=()=>{t=0;stop();draw();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)stop();});
 car.setAttribute('visibility','visible');play.parentElement.hidden=false;draw();
+
+
+// Close the section menu after choosing a destination or pressing Escape.
+const menu = document.querySelector('.all-menu');
+menu.addEventListener('click', event => {
+  if (event.target.closest('a')) menu.open = false;
+});
+document.addEventListener('click', event => {
+  if (menu.open && !menu.contains(event.target)) menu.open = false;
+});
+menu.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && menu.open) {
+    menu.open = false;
+    menu.querySelector('summary').focus();
+  }
+});
+
+// A role shortcut should open the matching guidance, including on a shared URL.
+function openRole(hash) {
+  const summary = document.getElementById(hash.slice(1));
+  if (summary?.matches('.field-guide summary')) summary.parentElement.open = true;
+}
+document.querySelector('.role-nav').addEventListener('click', event => {
+  const link = event.target.closest('a');
+  if (link) openRole(link.hash);
+});
+window.addEventListener('hashchange', () => openRole(location.hash));
+openRole(location.hash);
