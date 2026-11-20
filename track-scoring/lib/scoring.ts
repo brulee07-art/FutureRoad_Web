@@ -20,23 +20,29 @@ export function parseTime(minutes:string,seconds:string):number|null {
  const m=Number(minutes||0),s=Number(seconds);if(m>99||s>=60||s<0)return null;
  const cs=m*6000+Math.round(s*100);return cs>0?cs:null;
 }
+export function rankingBasis(attempts:Attempt[]){return attempts.some(a=>a.round===2&&a.status!=='withdrawn')?'combined' as const:'first' as const;}
 export function standings(attempts:Attempt[]){
+ const basis=rankingBasis(attempts);
  const rows=TEAMS.map(t=>{
   const all=attempts.filter(a=>a.teamId===t.id&&a.status!=='withdrawn');
   const first=all.find(a=>a.round===1),second=all.find(a=>a.round===2);
   const firstTime=first?finalTime(first):null,secondTime=second?finalTime(second):null;
   const complete=firstTime!==null&&secondTime!==null;
-  return {...t,attempts:all,score:complete?firstTime+secondTime:null,improvement:complete?firstTime-secondTime:null,rank:null as number|null,tied:false};
+  return {...t,attempts:all,basis,score:basis==='first'?firstTime:complete?firstTime+secondTime:null,improvement:complete?firstTime-secondTime:null,rank:null as number|null,tied:false};
  });
  rows.sort((a,b)=>{
   if(a.score===null||b.score===null)return a.score===null&&b.score===null?a.id-b.id:a.score===null?1:-1;
-  return a.score-b.score||b.improvement!-a.improvement!||a.id-b.id;
+  return a.score-b.score||(basis==='combined'?b.improvement!-a.improvement!:0)||a.id-b.id;
  });
  rows.forEach((row,i)=>{if(row.score!==null){const same=(other:typeof row)=>other.score===row.score&&other.improvement===row.improvement;row.rank=i>0&&same(rows[i-1])?rows[i-1].rank:i+1;row.tied=rows.some((other,j)=>j!==i&&same(other));}});
  return rows;
 }
 export function formatImprovement(cs:number|null){return cs===null?'—':cs===0?'변화 없음':`${formatTime(Math.abs(cs))} ${cs>0?'단축':'증가'}`;}
 export function rankingStatus(row:ReturnType<typeof standings>[number]){
+ if(row.basis==='first'){
+  if(row.score!==null)return '1차 임시 순위 · 2차 대기';
+  return row.attempts.some(a=>a.round===1&&a.status==='dnf')?'1차 미완주 · 순위 제외':'1차 기록 대기';
+ }
  if(row.score!==null)return '합산 완료';
  if(row.attempts.some(a=>a.status==='dnf'))return '미완주 포함 · 순위 제외';
  const missing=[1,2].filter(n=>!row.attempts.some(a=>a.round===n&&a.status==='complete'));
@@ -52,7 +58,7 @@ export function validateAttempt(v:any){
 }
 export function toCSV(attempts:Attempt[]){
  const quote=(v:unknown)=>'"'+String(v??'').replaceAll('"','""')+'"';
- const header=['순위','학교','팀','최종 합산 기록','단축 폭(초: 1차-2차)','합산 상태',...[1,2].flatMap(n=>[`${n}차 실제 주행시간`,`${n}차 차감(초)`,`${n}차 기록`,`${n}차 성공 항목`])];
+ const header=['순위','학교','팀',rankingBasis(attempts)==='first'?'1차 기준 기록':'최종 합산 기록','단축 폭(초: 1차-2차)','순위 상태',...[1,2].flatMap(n=>[`${n}차 실제 주행시간`,`${n}차 차감(초)`,`${n}차 기록`,`${n}차 성공 항목`])];
  const rows=standings(attempts).map(r=>[r.rank,r.school,r.name,formatTime(r.score),r.improvement===null?'':r.improvement/100,rankingStatus(r),...[1,2].flatMap(n=>{
   const a=r.attempts.find(a=>a.round===n);
   return a?.status==='complete'?[formatTime(a.rawCs),bonus(a.flags)/100,formatTime(finalTime(a)),MISSIONS.filter(m=>a.flags[m.key]).map(m=>m.name).join(' / ')]:['','',a?.status==='dnf'?'미완주':'대기',''];
