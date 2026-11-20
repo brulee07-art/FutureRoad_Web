@@ -1,0 +1,2 @@
+import { json,list } from '../../../lib/server';
+export async function GET(req:Request){try{const mode=new URL(req.url).searchParams.get('mode');if(!['official','practice'].includes(mode||''))return json({error:'기록 구분을 확인해 주세요.'},400);return json({attempts:await list(mode as any),serverTime:Date.now()});}catch(e){console.error('State read failed');return json({error:'기록을 불러오지 못했습니다. 연결을 확인해 주세요.'},503);}}

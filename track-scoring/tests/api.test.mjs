@@ -1,0 +1,23 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+const base=process.env.TEST_BASE_URL;
+if(base&&!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(base))throw Error('Only a local disposable preview is permitted.');
+const post=async(path,data,headers={})=>{const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(data)});return {status:r.status,headers:r.headers,data:await r.json()};};
+const get=async(mode='practice',headers={})=>{const r=await fetch(base+'/api/state?mode='+mode,{headers});return r.json();};
+const make=(patch={})=>({mode:'practice',teamId:9,round:2,status:'complete',rawCs:7412,flags:{lane:true,stop:false,pass:true,cross:false,pedestrian:false},revision:0,requestId:randomUUID(),...patch});
+test('persistent API: anonymous access, replay safety, optimistic concurrency, reset isolation', {skip:!base},async()=>{
+ const officialBefore=(await get('official')).attempts;
+ const state=await get();assert.ok(Array.isArray(state.attempts));
+ const reset=()=>post('/api/practice-reset',{confirm:'테스트 초기화'});
+ await reset();
+ assert.notEqual((await post('/api/attempt',make(),{Origin:'https://not-this-site.invalid'})).status,200);
+ assert.equal((await post('/api/attempt',make({rawCs:-10}))).status,400);
+ const req=make();const first=await post('/api/attempt',req);assert.equal(first.status,200);assert.equal(first.data.attempt.revision,1);
+ const repeated=await post('/api/attempt',req);assert.equal(repeated.status,200);assert.equal(repeated.data.attempt.revision,1);
+ assert.equal((await post('/api/attempt',make())).status,409);
+ const racers=await Promise.all([post('/api/attempt',make({revision:1,rawCs:7500})),post('/api/attempt',make({revision:1,rawCs:7600}))]);assert.deepEqual(racers.map(x=>x.status).sort(),[200,409]);
+ const saved=(await get()).attempts.find(a=>a.teamId===9&&a.round===2);assert.equal(saved.revision,2);assert.ok([7500,7600].includes(saved.rawCs));
+ assert.equal((await post('/api/attempt',make({teamId:8,round:1}),{})).status,200);
+ assert.equal((await reset()).status,200);assert.equal((await get()).attempts.length,0);assert.deepEqual((await get('official')).attempts,officialBefore);
+});
