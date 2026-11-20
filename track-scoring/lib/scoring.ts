@@ -14,6 +14,17 @@ export type Attempt = {id:string;mode:Mode;teamId:number;round:number;status:'co
 export const emptyFlags=():Flags=>Object.fromEntries(MISSIONS.map(m=>[m.key,false]));
 export function bonus(flags:Flags){return MISSIONS.reduce((sum,m)=>sum+(flags[m.key]===true?m.seconds*100:0),0);}
 export function finalTime(a:Attempt){return a.status==='complete'&&a.rawCs!==null?a.rawCs-bonus(a.flags):null;}
+export const DNF_EXTRA_CS=90*100;
+export function slowestCompleteTime(attempts:Attempt[],mode:Mode,round:number):number|null{
+ const times=attempts.filter(a=>a.mode===mode&&a.round===round&&a.status==='complete').map(finalTime).filter((t):t is number=>t!==null);
+ return times.length?Math.max(...times):null;
+}
+export function scoredTime(a:Attempt|undefined,attempts:Attempt[]):number|null{
+ if(!a||a.status==='withdrawn')return null;
+ if(a.status==='complete')return finalTime(a);
+ const reference=slowestCompleteTime(attempts,a.mode,a.round);
+ return reference===null?null:reference+DNF_EXTRA_CS;
+}
 export function formatTime(cs:number|null|undefined){if(cs===null||cs===undefined)return '—';const neg=cs<0?'−':'';cs=Math.abs(cs);return `${neg}${Math.floor(cs/6000)}:${String(Math.floor(cs/100)%60).padStart(2,'0')}.${String(cs%100).padStart(2,'0')}`;}
 export function parseTime(minutes:string,seconds:string):number|null {
  if(!/^\d{1,2}$/.test(minutes||'0')||!/^\d{1,2}(?:\.\d{1,2})?$/.test(seconds))return null;
@@ -26,9 +37,10 @@ export function standings(attempts:Attempt[]){
  const rows=TEAMS.map(t=>{
   const all=attempts.filter(a=>a.teamId===t.id&&a.status!=='withdrawn');
   const first=all.find(a=>a.round===1),second=all.find(a=>a.round===2);
-  const firstTime=first?finalTime(first):null,secondTime=second?finalTime(second):null;
-  const complete=firstTime!==null&&secondTime!==null;
-  return {...t,attempts:all,basis,score:basis==='first'?firstTime:complete?firstTime+secondTime:null,improvement:complete?firstTime-secondTime:null,rank:null as number|null,tied:false};
+  const firstTime=scoredTime(first,attempts),secondTime=scoredTime(second,attempts);
+  const calculated=firstTime!==null&&secondTime!==null;
+  const hasDnf=basis==='first'?first?.status==='dnf':all.some(a=>a.status==='dnf');
+  return {...t,attempts:all,basis,firstTime,secondTime,hasDnf,score:basis==='first'?firstTime:calculated?firstTime+secondTime:null,improvement:calculated?firstTime-secondTime:null,rank:null as number|null,tied:false};
  });
  rows.sort((a,b)=>{
   if(a.score===null||b.score===null)return a.score===null&&b.score===null?a.id-b.id:a.score===null?1:-1;
@@ -40,12 +52,13 @@ export function standings(attempts:Attempt[]){
 export function formatImprovement(cs:number|null){return cs===null?'—':cs===0?'변화 없음':`${formatTime(Math.abs(cs))} ${cs>0?'단축':'증가'}`;}
 export function rankingStatus(row:ReturnType<typeof standings>[number]){
  if(row.basis==='first'){
-  if(row.score!==null)return '1차 임시 순위 · 2차 대기';
-  return row.attempts.some(a=>a.round===1&&a.status==='dnf')?'1차 미완주 · 순위 제외':'1차 기록 대기';
+  if(row.score!==null)return row.hasDnf?'1차 임시 순위 · 미완주 환산':'1차 임시 순위 · 2차 대기';
+  return row.attempts.some(a=>a.round===1&&a.status==='dnf')?'1차 완주 기록 대기':'1차 기록 대기';
  }
- if(row.score!==null)return '합산 완료';
- if(row.attempts.some(a=>a.status==='dnf'))return '미완주 포함 · 순위 제외';
- const missing=[1,2].filter(n=>!row.attempts.some(a=>a.round===n&&a.status==='complete'));
+ if(row.score!==null)return row.hasDnf?'합산 완료 · 미완주 환산 포함':'합산 완료';
+ const waiting=[1,2].filter(n=>row.attempts.some(a=>a.round===n&&a.status==='dnf')&&(n===1?row.firstTime:row.secondTime)===null);
+ if(waiting.length)return `${waiting.join('·')}차 완주 기록 대기`;
+ const missing=[1,2].filter(n=>!row.attempts.some(a=>a.round===n));
  return `${missing.join('·')}차 기록 대기`;
 }
 export function validateAttempt(v:any){
@@ -58,10 +71,12 @@ export function validateAttempt(v:any){
 }
 export function toCSV(attempts:Attempt[]){
  const quote=(v:unknown)=>'"'+String(v??'').replaceAll('"','""')+'"';
- const header=['순위','학교','팀',rankingBasis(attempts)==='first'?'1차 기준 기록':'최종 합산 기록','단축 폭(초: 1차-2차)','순위 상태',...[1,2].flatMap(n=>[`${n}차 실제 주행시간`,`${n}차 차감(초)`,`${n}차 기록`,`${n}차 성공 항목`])];
+ const header=['순위','학교','팀',rankingBasis(attempts)==='first'?'1차 기준 기록':'최종 합산 기록','단축 폭(초: 1차-2차)','순위 상태',...[1,2].flatMap(n=>[`${n}차 실제 주행시간`,`${n}차 차감(초)`,`${n}차 기록`,`${n}차 성공 항목`,`${n}차 상태`])];
  const rows=standings(attempts).map(r=>[r.rank,r.school,r.name,formatTime(r.score),r.improvement===null?'':r.improvement/100,rankingStatus(r),...[1,2].flatMap(n=>{
   const a=r.attempts.find(a=>a.round===n);
-  return a?.status==='complete'?[formatTime(a.rawCs),bonus(a.flags)/100,formatTime(finalTime(a)),MISSIONS.filter(m=>a.flags[m.key]).map(m=>m.name).join(' / ')]:['','',a?.status==='dnf'?'미완주':'대기',''];
+  const time=n===1?r.firstTime:r.secondTime;
+  if(a?.status==='complete')return [formatTime(a.rawCs),bonus(a.flags)/100,formatTime(time),MISSIONS.filter(m=>a.flags[m.key]).map(m=>m.name).join(' / '),'완주'];
+  return a?.status==='dnf'?['','',time===null?'기준 대기':formatTime(time),'','미완주']:['','','대기','','대기'];
  })]);
  return '\ufeff'+[header,...rows].map(row=>row.map(quote).join(',')).join('\r\n');
 }
