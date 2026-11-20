@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주행 채점 · 심사위원 | 퓨처로드</title>
+<meta name="description" content="제2회 퓨처로드 자율주행 자동차 제작 캠프 심사위원 주행 채점 화면">
+<link rel="stylesheet" href="assets/driving-portal.css">
+<script src="assets/driving-portal.js" defer></script>
+</head>
+<body data-view="judge">
+<header class="portal-header">
+<a class="portal-home" href="/"><strong>FUTURE ROAD</strong><span>홈페이지로</span></a>
+<nav class="portal-tabs" aria-label="주행 평가 화면">
+<a class="portal-tab" data-view="judge" href="/driving.html" aria-current="page"><strong>주행 채점</strong><small>심사위원용</small></a>
+<a class="portal-tab" data-view="display" href="/driving-display.html"><strong>실시간 순위</strong><small>전광판용</small></a>
+</nav>
+<button class="portal-fullscreen" type="button">전체화면</button>
+</header>
+<main class="portal-main">
+<div class="portal-loading" role="status"><div><strong>주행 채점 화면을 열고 있습니다.</strong><span>저장된 주행 기록에 연결합니다.</span></div></div>
+<iframe id="scoring-frame" title="퓨처로드 주행 채점 프로그램" src="https://futureroad-track-scoring-2026.brulee07.chatgpt.site/?view=judge&amp;mode=official&amp;embed=futureroad" allow="fullscreen; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<p class="portal-status" role="status" hidden></p>
+</main>
+<noscript>주행 기록과 실시간 순위를 사용하려면 브라우저에서 자바스크립트를 허용해 주세요.</noscript>
+</body>
+</html>

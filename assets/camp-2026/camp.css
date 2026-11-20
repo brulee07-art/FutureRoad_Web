@@ -188,3 +188,14 @@ footer a { color: white; }
 .transit-guide { margin: 1rem 0; }
 .transit-guide dt { font-weight: 750; color: var(--ink); }
 .transit-guide dd { margin: .25rem 0 .9rem; }
+
+/* Always-visible access to the judging tablet and venue display. */
+.driving-tabs{width:min(100%,var(--wrap));margin:auto;padding:0 var(--gutter) 1rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.driving-tabs a{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border:1px solid #5f8076;border-radius:6px;text-decoration:none;background:#1b4139;color:#fff;min-height:68px}
+.driving-tabs a:hover{background:#29584c;border-color:var(--lime)}
+.driving-tabs a:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+
+.driving-tabs strong{font-size:1.02rem}
+.driving-tabs small{font-size:.875rem;color:#c7d9cf;margin-left:.7rem;white-space:nowrap}
+
+@media(max-width:480px){.driving-tabs{gap:.5rem;padding-bottom:.75rem}.driving-tabs a{gap:.45rem;padding:.65rem .7rem}.driving-tabs strong{font-size:.95rem}.driving-tabs small{display:block;margin-left:0;font-size:.8rem}}
