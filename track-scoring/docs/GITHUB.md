@@ -26,11 +26,14 @@
 | `lib/scoring.ts` | 팀명·학교명·성공 항목·차감시간·합산 및 동점 기준 |
 | `app/score-app.tsx` | 태블릿 채점 화면·전체 순위·전광판 |
 | `app/judge-login.tsx` | 심사위원 ID·비밀번호 로그인 화면 |
+| `app/scoring-settings.tsx` | 운영 설정·테스트 초기화·실전과 테스트 일괄 초기화 확인 화면 |
+| `app/api/all-reset/route.ts` | 인증 및 확인 문구 검증 후 두 모드 기록을 함께 삭제 |
 | `lib/judge-auth.ts` | 서버 인증·로그인 시도 제한·세션 검증 |
 | `lib/judge-client.ts` | 탭별 로그인 토큰 관리 |
 | `app/globals.css` | 화면 색상·글자·배치 |
 | `public/track-scoring.pdf` | 트랙과 평가 기준 안내 |
 | `tests/scoring.test.mjs` | 합산·동점·미완주·CSV 계산 검증 |
+| `tests/server.test.mjs` | 인증·저장·초기화·삭제 오류 시 복구 검증 |
 | `README.md` | 운영 방법과 평가 기준 |
 
 Node.js 22.13 이상이 있는 환경에서 프로그램 폴더를 기준으로 실행합니다.

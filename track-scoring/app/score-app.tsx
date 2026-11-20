@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Check, CheckCheck, ChevronDown, CircleHelp, ClipboardCheck, Download, Flag, Gauge, LogOut, Maximize, Monitor, RotateCcw, Save, Settings2, ShieldCheck, Trophy, WifiOff, X } from 'lucide-react';
+import { Check, CheckCheck, ChevronDown, CircleHelp, ClipboardCheck, Download, Flag, Gauge, LogOut, Maximize, Monitor, Save, Settings2, ShieldCheck, Trophy, WifiOff, X } from 'lucide-react';
 import { TEAMS, MISSIONS, bonus, emptyFlags, finalTime, formatTime, formatImprovement, rankingStatus, parseTime, standings, toCSV, type Attempt, type Flags, type Mode } from '../lib/scoring';
 import { judgeToken,judgeHeaders,rememberJudge,expireJudge } from '../lib/judge-client';
 import JudgeLogin from './judge-login';
+import ScoringSettings,{type ResetScope} from './scoring-settings';
 
 type View = 'judge'|'rankings'|'display';
 type Draft = {minutes:string;seconds:string;flags:Flags;status:'complete'|'dnf';revision:number;dirty:boolean;requestId:string};
@@ -32,6 +33,9 @@ export default function ScoreApp(){
  const [failure,setFailure]=useState('');
  const [reload,setReload]=useState(0);
  const [epoch,setEpoch]=useState(0);
+ const resetGeneration=useRef(0);
+ const [pendingSaves,setPendingSaves]=useState(0);
+ const onPendingSave=useCallback((delta:number)=>setPendingSaves(n=>n+delta),[]);
  const [modal,setModal]=useState<'rules'|'settings'|null>(null);
  const [notice,setNotice]=useState('');
  const [ready,setReady]=useState(false);
@@ -53,11 +57,18 @@ export default function ScoreApp(){
  useEffect(()=>{const expired=()=>{setAuth('required');setExpiresAt(0);setModal(null);setNotice('');};window.addEventListener('futureroad:login-required',expired);return()=>window.removeEventListener('futureroad:login-required',expired);},[]);
  useEffect(()=>{if(auth!=='authorized'||!expiresAt)return;const timer=setTimeout(expireJudge,Math.max(0,expiresAt-Date.now()));return()=>clearTimeout(timer);},[auth,expiresAt]);
  useEffect(()=>{if(!ready)return;let alive=true;let fetching=false;const controller=new AbortController();
-  const refresh=async()=>{if(fetching)return;fetching=true;try{const response=await fetch(`/api/state?mode=${mode}`,{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('연결이 끊겼습니다. 마지막으로 확인한 기록을 표시합니다.');const data:any=await response.json();if(alive){setAttempts(data.attempts);setLoaded(true);setLastSync(data.serverTime);setFailure('');}}catch(e){if(alive)setFailure((e as Error).message==='Failed to fetch'?'인터넷 연결을 확인해 주세요. 저장된 결과를 다시 연결 중입니다.':(e as Error).message);}finally{fetching=false;}};
+  const refresh=async()=>{if(fetching)return;fetching=true;const generation=resetGeneration.current;try{const response=await fetch(`/api/state?mode=${mode}`,{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('연결이 끊겼습니다. 마지막으로 확인한 기록을 표시합니다.');const data:any=await response.json();if(alive&&generation===resetGeneration.current){setAttempts(data.attempts);setLoaded(true);setLastSync(data.serverTime);setFailure('');}}catch(e){if(alive&&generation===resetGeneration.current)setFailure((e as Error).message==='Failed to fetch'?'인터넷 연결을 확인해 주세요. 저장된 결과를 다시 연결 중입니다.':(e as Error).message);}finally{fetching=false;}};
   refresh();const timer=setInterval(refresh,2000);return()=>{alive=false;controller.abort();clearInterval(timer);};
  },[mode,ready,reload]);
  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),7000);return()=>clearTimeout(timer);},[notice]);
  const refresh=useCallback(()=>setReload(n=>n+1),[]);
+ const afterReset=(scope:ResetScope)=>{
+  resetGeneration.current+=1;
+  try{Object.keys(localStorage).filter(k=>scope==='all'?k.startsWith('fr-draft-v1-official-')||k.startsWith('fr-draft-v1-practice-'):k.startsWith('fr-draft-v1-practice-')).forEach(k=>localStorage.removeItem(k));}catch{}
+  if(scope==='all'||mode==='practice'){setAttempts([]);setEpoch(n=>n+1);setTeamId(1);setRound(1);}
+  setModal(null);refresh();setNotice(scope==='all'?'실전·테스트 기록을 모두 초기화했습니다. 모든 팀이 주행 대기 상태입니다.':'테스트 기록을 초기화했습니다. 실전 기록은 유지됩니다.');
+ };
+ const editorGeneration=resetGeneration.current;
  const changeMode=(next:Mode)=>{if(next===mode)return;setMode(next);setAttempts([]);setLoaded(false);setLastSync(0);setFailure('');};
  const rows=standings(attempts);
  const done=attempts.filter(a=>a.status!=='withdrawn').length;
@@ -87,19 +98,19 @@ export default function ScoreApp(){
   {!loaded?<div className="loading-state"><span className="loader"/><h2>주행 기록을 불러오고 있습니다</h2><p>{failure||'저장된 팀별 기록과 순위를 확인합니다.'}</p><button className="secondary-button" onClick={refresh}>다시 불러오기</button></div>:view==='rankings'?<section className="ranking-page"><div className="section-top"><div><h2>전체 순위</h2><p>최종 합산 = 1차 기록 + 2차 기록 · 각 회차에 성공 차감 적용</p></div><div className="action-row"><button className="secondary-button" onClick={copyLink}><Monitor size={17}/>전광판 주소 복사</button><button className="secondary-button" onClick={exportCSV}><Download size={17}/>CSV 내려받기</button></div></div><div className="ranking-table-scroll"><table className="ranking-table"><thead><tr><th>순위</th><th>팀명 · 소속교</th><th>1차 기록</th><th>2차 기록</th><th>단축 폭</th><th>최종 합산</th></tr></thead><tbody>{rows.map(r=><tr key={r.id} className={r.rank===1?'leading':''}><td><span className="rank-circle">{r.rank??'—'}</span>{r.tied&&<small>공동</small>}</td><td><button className="team-link" onClick={()=>{setTeamId(r.id);setRound(r.attempts.some(a=>a.round===1&&a.status==='complete')?2:1);setView('judge');}}>{r.name}</button><span className="school">{r.school}</span></td><td><RoundTime a={r.attempts.find(a=>a.round===1)}/></td><td><RoundTime a={r.attempts.find(a=>a.round===2)}/></td><td><strong>{formatImprovement(r.improvement)}</strong><small className="record-equation">{r.score!==null?'1차 기록 − 2차 기록':rankingStatus(r)}</small></td><td className="mono ranking-result">{formatTime(r.score)}</td></tr>)}</tbody></table></div><p className="table-note">두 회차 모두 완주한 팀을 합산합니다. 단축 폭 = 1차 기록 − 2차 기록이며, 합산과 단축 폭이 모두 같으면 공동순위입니다. 미입력·미완주·취소 회차가 있으면 순위에서 제외합니다. 시간은 분:초.백분의초 단위입니다.</p></section>:<main className="judge-grid">
    <div className="mobile-team-picker"><label htmlFor="mobile-team">채점할 팀</label><div><select id="mobile-team" value={teamId} onChange={e=>setTeamId(Number(e.target.value))}>{TEAMS.map(t=><option value={t.id} key={t.id}>{String(t.id).padStart(2,'0')} · {t.name} / {t.school}</option>)}</select><ChevronDown size={19}/></div></div>
    <aside className="team-sidebar"><div className="sidebar-title"><h2>참가팀</h2><span>9 TEAMS</span></div><div className="team-list" role="group" aria-label="채점할 팀 선택">{TEAMS.map(t=>{const teamAttempts=attempts.filter(a=>a.teamId===t.id&&a.status!=='withdrawn');return <button className={`team-item ${teamId===t.id?'selected':''}`} key={t.id} onClick={()=>setTeamId(t.id)} aria-pressed={teamId===t.id}><span className="team-number">{String(t.id).padStart(2,'0')}</span><span className="team-label"><strong>{t.name}</strong><small>{t.school}</small><span className="round-marks">{[1,2].map(n=><span key={n} className={teamAttempts.some(a=>a.round===n)?'filled':''}>{n}차 {teamAttempts.some(a=>a.round===n)?'기록':'대기'}</span>)}</span></span></button>;})}</div><div className="sidebar-foot"><ShieldCheck size={18}/><span>확정한 기록은<br/>다른 기기에서도 이어집니다.</span></div></aside>
-   <div className="editor-column"><div className="round-tabs" role="group" aria-label="주행 회차"><button className={round===1?'active':''} onClick={()=>setRound(1)}>1차 주행</button><button className={round===2?'active':''} onClick={()=>setRound(2)}>2차 주행</button><span>1·2차 합산 순위 반영</span></div><Editor key={`${mode}-${teamId}-${round}-${epoch}`} mode={mode} teamId={teamId} round={round} record={record} onSaved={a=>{if(a&&a.mode===activeMode.current)setAttempts(prev=>[...prev.filter(x=>x.id!==a.id),a]);refresh();}} onNotice={setNotice}/></div>
+   <div className="editor-column"><div className="round-tabs" role="group" aria-label="주행 회차"><button className={round===1?'active':''} onClick={()=>setRound(1)}>1차 주행</button><button className={round===2?'active':''} onClick={()=>setRound(2)}>2차 주행</button><span>1·2차 합산 순위 반영</span></div><Editor key={`${mode}-${teamId}-${round}-${epoch}`} mode={mode} teamId={teamId} round={round} record={record} onPendingSave={onPendingSave} onSaved={a=>{if(editorGeneration!==resetGeneration.current)return;if(a&&a.mode===activeMode.current)setAttempts(prev=>[...prev.filter(x=>x.id!==a.id),a]);refresh();}} onNotice={setNotice}/></div>
    <aside className="live-sidebar"><div className="live-heading"><div><span className="eyebrow">LIVE STANDINGS</span><h2>실시간 순위</h2></div><Trophy size={23}/></div><p className="live-sub">두 회차 합산 · 동률이면 단축 폭 우선</p><ol className="mini-ranking">{rows.map(r=><li key={r.id} className={r.id===teamId?'current':''}><span className={`mini-rank ${r.rank===1?'first':''}`}>{r.rank??'—'}</span><div><strong>{r.name}</strong><small>{r.score!==null?`${r.tied?'공동 · ':''}${formatImprovement(r.improvement)}`:rankingStatus(r)}</small></div><span className="mono">{formatTime(r.score)}</span></li>)}</ol><button className="text-button" onClick={()=>setView('rankings')}>전체 결과 보기</button><div className="scoring-note"><Gauge size={21}/><strong>빠르게, 그리고 정확하게.</strong><p>성공 항목은 각각 1회만 반영합니다.<br/>최대 차감시간은 <b>60초</b>입니다.</p><button onClick={()=>setModal('rules')}>평가 기준 확인</button></div></aside>
   </main>}
   <footer className="app-footer"><span>FUTURE ROAD · 2026</span><p>광덕고등학교 창업교육 거점센터 · 퓨처로드 교과연구회</p><span>심사위원 1인 운영</span></footer>
   {modal==='rules'&&<Modal title="주행 평가 기준" onClose={()=>setModal(null)}><Rules/></Modal>}
-  {modal==='settings'&&<Modal title="운영 설정" onClose={()=>setModal(null)}><Settings onReset={()=>{if(mode==='practice'){setAttempts([]);setEpoch(n=>n+1);}refresh();setNotice('테스트 기록을 초기화했습니다. 실전 기록은 유지됩니다.');}}/></Modal>}
+  {modal==='settings'&&<Modal title="운영 설정" onClose={()=>setModal(null)}><ScoringSettings resetRecords={scope=>post(scope==='all'?'/api/all-reset':'/api/practice-reset',{confirm:scope==='all'?'전체 초기화':'테스트 초기화'})} savingRecord={pendingSaves>0} onReset={afterReset}/></Modal>}
  </div>;
 }
 
 function Connection({failure,lastSync}:{failure:string;lastSync:number}){return <span className={`connection ${failure?'offline':''}`} title={failure||'2초마다 저장된 결과를 확인합니다.'}>{failure?<WifiOff size={14}/>:<span className="connection-dot"/>}{failure?'연결 확인 중':lastSync?`동기화 ${clock(lastSync)}`:'연결 중'}</span>;}
 
 function getDraft(record?:Attempt):Draft{const raw=record?.rawCs;return {minutes:raw!==null&&raw!==undefined?String(Math.floor(raw/6000)):'',seconds:raw!==null&&raw!==undefined?(raw%6000/100).toFixed(2):'',flags:record?.flags||emptyFlags(),status:record?.status==='dnf'?'dnf':'complete',revision:record?.revision||0,dirty:false,requestId:''};}
-function Editor({mode,teamId,round,record,onSaved,onNotice}:{mode:Mode;teamId:number;round:number;record?:Attempt;onSaved:(a?:Attempt)=>void;onNotice:(v:string)=>void}){
+function Editor({mode,teamId,round,record,onSaved,onNotice,onPendingSave}:{mode:Mode;teamId:number;round:number;record?:Attempt;onSaved:(a?:Attempt)=>void;onNotice:(v:string)=>void;onPendingSave:(delta:number)=>void}){
  const key=`fr-draft-v1-${mode}-${teamId}-${round}`;
  const [draft,setDraft]=useState<Draft>(()=>{const fresh=getDraft(record);try{const stored=JSON.parse(localStorage.getItem(key)||'null');if(stored&&stored.dirty&&Number.isInteger(stored.revision)&&typeof stored.minutes==='string'&&typeof stored.seconds==='string'&&['complete','dnf'].includes(stored.status)&&MISSIONS.every(m=>typeof stored.flags?.[m.key]==='boolean'))return stored;}catch{}return fresh;});
  const [saving,setSaving]=useState(false);
@@ -122,9 +133,9 @@ function Editor({mode,teamId,round,record,onSaved,onNotice}:{mode:Mode;teamId:nu
   if(saving)return;
   if(!withdraw&&draft.status==='complete'&&raw===null){setError('실제 주행시간을 입력해 주세요. 초는 0~59.99 범위입니다.');return;}
   if(withdraw&&!confirm(`${team.name} ${round}차 기록을 취소할까요? 이 기록은 순위에서 제외됩니다.`))return;
-  const requestId=(!withdraw&&draft.requestId)||crypto.randomUUID();setDraft(d=>({...d,requestId,dirty:true}));setSaving(true);setError('');
+  const requestId=(!withdraw&&draft.requestId)||crypto.randomUUID();setDraft(d=>({...d,requestId,dirty:true}));setSaving(true);onPendingSave(1);setError('');
   try{const data=await post('/api/attempt',{mode,teamId,round,status:withdraw?'withdrawn':draft.status,rawCs:raw,flags:draft.flags,revision:draft.revision,requestId});const a=data.attempt as Attempt;try{localStorage.removeItem(key);}catch{}onSaved(a);onNotice(`${team.name} ${round}차 ${withdraw?'기록을 취소했습니다.':'기록을 저장했습니다.'}`);if(mounted.current){setDraft(getDraft(a));setSavedAt(a.updatedAt);setConflict(false);}}
-  catch(e){if(mounted.current){setError(e instanceof Error?e.message:'저장 결과를 확인하지 못했습니다. 입력 내용은 남아 있습니다. 다시 저장해 주세요.');setConflict(!!(e as any).conflict);}onSaved();}finally{if(mounted.current)setSaving(false);}
+  catch(e){if(mounted.current){setError(e instanceof Error?e.message:'저장 결과를 확인하지 못했습니다. 입력 내용은 남아 있습니다. 다시 저장해 주세요.');setConflict(!!(e as any).conflict);}onSaved();}finally{onPendingSave(-1);if(mounted.current)setSaving(false);}
  };
  const loadLatest=()=>{if(draft.dirty&&!confirm('입력 중인 내용을 버리고 저장된 최신 기록을 불러올까요?'))return;setDraft(getDraft(record));setError('');setConflict(false);setSavedAt(record?.updatedAt||0);};
  return <section className="editor-card"><header className="editor-heading"><div><span className="team-kicker">TEAM {String(team.id).padStart(2,'0')} <span>·</span> {round}차 주행</span><h2>{team.name}</h2><p>{team.school}</p></div><span className={`save-state ${draft.dirty?'unsaved':''}`}>{draft.dirty?'입력 중':record&&record.status!=='withdrawn'?'저장된 기록':'주행 대기'}</span></header>
@@ -142,7 +153,3 @@ function Editor({mode,teamId,round,record,onSaved,onNotice}:{mode:Mode;teamId:nu
 
 function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){const ref=useRef<HTMLDialogElement>(null);useEffect(()=>{ref.current?.showModal();},[]);return <dialog ref={ref} className="modal" onCancel={e=>{e.preventDefault();onClose();}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}><div className="modal-inner"><header><h2>{title}</h2><button className="icon-button" aria-label="창 닫기" onClick={onClose}><X size={22}/></button></header>{children}</div></dialog>;}
 function Rules(){return <div className="rules-content"><div className="rules-formula">1차 기록 <span>+</span> 2차 기록 <span>=</span> 최종 합산</div><p>회차 기록 = 실제 주행시간 − 성공 차감시간. 심사위원 1명이 차량을 따라가며 성공 항목을 체크합니다. 실패 가산점은 없으며, 각 성공은 한 회차에서 한 번만 인정합니다.</p><div className="rules-list">{MISSIONS.map(m=><div key={m.key}><span><strong>{m.name}</strong><small>{m.detail}</small></span><b>−{m.seconds}초</b></div>)}</div><ul><li>차감 합계는 회차별 최대 60초입니다.</li><li>1·2차 기록을 합산하며, 합산이 낮은 팀이 높은 순위입니다.</li><li>합산 동률이면 단축 폭(1차 기록 − 2차 기록)이 큰 팀을 우선합니다. 두 값 모두 같으면 공동순위입니다.</li><li>단축 폭은 각 회차의 성공 차감을 적용한 기록으로 계산합니다. 2차 기록이 늘면 음수로 계산합니다.</li><li>두 회차 모두 완주해야 순위가 표시됩니다. 미입력·미완주·취소 회차가 있으면 합산하지 않습니다.</li><li>차로 이탈은 4개 바퀴가 모두 허용된 트랙 밖으로 벗어난 경우입니다.</li><li>음수 기록도 계산값 그대로 반영합니다. 별도의 제한시간은 설정하지 않았습니다.</li></ul><a href="/track-scoring.pdf" target="_blank" rel="noreferrer" className="secondary-button"><Download size={18}/>트랙 · 평가 기준 PDF</a><a href="/track-scoring.png" target="_blank" rel="noreferrer"><img className="rules-track" src="/track-scoring.png" alt="기존 실증코스에 5개 성공 평가 기준을 표시한 트랙 안내도"/></a></div>;}
-function Settings({onReset}:{onReset:()=>void}){
- const [busy,setBusy]=useState(false);const [error,setError]=useState('');
- return <div className="settings-content"><h3><ShieldCheck size={19}/>심사위원 1인 운영</h3><p>운영본부에서 안내한 ID와 비밀번호로 로그인한 뒤 채점합니다. 로그인은 최대 12시간 유지됩니다. 사용 후에는 로그아웃해 주세요. 전광판은 로그인 없이 결과를 확인할 수 있습니다.</p><hr/><h3><RotateCcw size={19}/>테스트 기록 초기화</h3><p>9개 팀의 테스트 기록만 지웁니다. 실전 기록은 유지됩니다.</p><button className="danger-button" disabled={busy} onClick={async()=>{if(!confirm('모든 테스트 기록을 지울까요? 실전 기록은 유지됩니다.'))return;setBusy(true);setError('');try{await post('/api/practice-reset',{confirm:'테스트 초기화'});try{Object.keys(localStorage).filter(k=>k.startsWith('fr-draft-v1-practice-')).forEach(k=>localStorage.removeItem(k));}catch{}onReset();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}>테스트 기록 초기화</button>{error&&<p className="form-error" role="alert">{error}</p>}</div>;
-}
