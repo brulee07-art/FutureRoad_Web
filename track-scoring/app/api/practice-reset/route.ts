@@ -1,2 +1,3 @@
 import { db,json,writer,body } from '../../../lib/server';
-export async function POST(req:Request){try{await writer(req);if((await body(req)).confirm!=='테스트 초기화')throw Error('초기화 확인이 필요합니다.');await db().batch([db().prepare("DELETE FROM attempt_history WHERE attempt_id LIKE 'practice:%'"),db().prepare("DELETE FROM attempts WHERE mode='practice'")]);return json({ok:true});}catch(e){return json({error:(e as Error).message},400);}}
+import { AuthError } from '../../../lib/judge-auth';
+export async function POST(req:Request){try{await writer(req);if((await body(req)).confirm!=='테스트 초기화')throw Error('초기화 확인이 필요합니다.');await db().batch([db().prepare("DELETE FROM attempt_history WHERE attempt_id LIKE 'practice:%'"),db().prepare("DELETE FROM attempts WHERE mode='practice'")]);return json({ok:true});}catch(e){return json({error:(e as Error).message},e instanceof AuthError?e.status:400);}}

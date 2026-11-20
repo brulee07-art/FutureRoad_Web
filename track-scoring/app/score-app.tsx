@@ -1,15 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Check, CheckCheck, ChevronDown, CircleHelp, ClipboardCheck, Download, Flag, Gauge, Maximize, Monitor, RotateCcw, Save, Settings2, ShieldCheck, Trophy, WifiOff, X } from 'lucide-react';
+import { Check, CheckCheck, ChevronDown, CircleHelp, ClipboardCheck, Download, Flag, Gauge, LogOut, Maximize, Monitor, RotateCcw, Save, Settings2, ShieldCheck, Trophy, WifiOff, X } from 'lucide-react';
 import { TEAMS, MISSIONS, bonus, emptyFlags, finalTime, formatTime, formatImprovement, rankingStatus, parseTime, standings, toCSV, type Attempt, type Flags, type Mode } from '../lib/scoring';
+import { judgeToken,judgeHeaders,rememberJudge,expireJudge } from '../lib/judge-client';
+import JudgeLogin from './judge-login';
 
 type View = 'judge'|'rankings'|'display';
 type Draft = {minutes:string;seconds:string;flags:Flags;status:'complete'|'dnf';revision:number;dirty:boolean;requestId:string};
 
 async function post(path:string,value:unknown){
- const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(value)});
+ const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json',...judgeHeaders()},body:JSON.stringify(value)});
  const data:any=await response.json();
+ if(response.status===401)expireJudge();
  if(!response.ok)throw Object.assign(new Error(data.error||'저장하지 못했습니다. 다시 시도해 주세요.'),{conflict:data.conflict});
  return data;
 }
@@ -33,8 +36,22 @@ export default function ScoreApp(){
  const [notice,setNotice]=useState('');
  const [ready,setReady]=useState(false);
  const [portal,setPortal]=useState(false);
+ const [auth,setAuth]=useState<'checking'|'required'|'authorized'|'error'>('checking');
+ const [authError,setAuthError]=useState('');
+ const [judgeID,setJudgeID]=useState('');
+ const [expiresAt,setExpiresAt]=useState(0);
+ const [authReload,setAuthReload]=useState(0);
+ const [loggingOut,setLoggingOut]=useState(false);
  useEffect(()=>{const q=new URLSearchParams(location.search);if(q.get('mode')==='practice')setMode('practice');if(['judge','rankings','display'].includes(q.get('view')||''))setView(q.get('view') as View);setPortal(q.get('embed')==='futureroad');setReady(true);},[]);
  useEffect(()=>{if(!ready)return;const q=new URLSearchParams({view,mode});if(portal)q.set('embed','futureroad');history.replaceState(null,'',`?${q}`);if(portal&&window.parent!==window)window.parent.postMessage({type:'futureroad:state',view,mode},'https://www.futureroad.kr');},[view,mode,ready,portal]);
+ const publicDisplay=view==='display';
+ useEffect(()=>{if(!ready||publicDisplay)return;let active=true;setAuth('checking');setAuthError('');
+  if(!judgeToken()){setAuth('required');return;}
+  fetch('/api/auth/session',{headers:judgeHeaders(),cache:'no-store'}).then(async response=>{if(!response.ok)throw Error('로그인 상태를 확인하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.');return response.json() as Promise<{authenticated:boolean;id?:string;expiresAt?:number}>;}).then(data=>{if(!active)return;if(data.authenticated){setAuth('authorized');setJudgeID(data.id||'');setExpiresAt(data.expiresAt||0);}else{rememberJudge('');setAuth('required');}}).catch(e=>{if(active){setAuth('error');setAuthError((e as Error).message);}});
+  return()=>{active=false;};
+ },[ready,publicDisplay,authReload]);
+ useEffect(()=>{const expired=()=>{setAuth('required');setExpiresAt(0);setModal(null);setNotice('');};window.addEventListener('futureroad:login-required',expired);return()=>window.removeEventListener('futureroad:login-required',expired);},[]);
+ useEffect(()=>{if(auth!=='authorized'||!expiresAt)return;const timer=setTimeout(expireJudge,Math.max(0,expiresAt-Date.now()));return()=>clearTimeout(timer);},[auth,expiresAt]);
  useEffect(()=>{if(!ready)return;let alive=true;let fetching=false;const controller=new AbortController();
   const refresh=async()=>{if(fetching)return;fetching=true;try{const response=await fetch(`/api/state?mode=${mode}`,{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('연결이 끊겼습니다. 마지막으로 확인한 기록을 표시합니다.');const data:any=await response.json();if(alive){setAttempts(data.attempts);setLoaded(true);setLastSync(data.serverTime);setFailure('');}}catch(e){if(alive)setFailure((e as Error).message==='Failed to fetch'?'인터넷 연결을 확인해 주세요. 저장된 결과를 다시 연결 중입니다.':(e as Error).message);}finally{fetching=false;}};
   refresh();const timer=setInterval(refresh,2000);return()=>{alive=false;controller.abort();clearInterval(timer);};
@@ -50,6 +67,7 @@ export default function ScoreApp(){
  const showDisplay=()=>window.open(displayURL,'_blank','noopener,noreferrer');
  const exportCSV=()=>download(`퓨처로드_${mode==='official'?'실전':'테스트'}_순위.csv`,toCSV(attempts),'text/csv;charset=utf-8');
  const copyLink=async()=>{try{await navigator.clipboard.writeText(displayURL);setNotice('전광판 주소를 복사했습니다. 전광판 PC에서 열어 주세요.');}catch{setNotice('주소 복사를 지원하지 않는 환경입니다. 전광판 화면을 연 뒤 주소를 복사해 주세요.');}};
+ const logout=async()=>{if(loggingOut)return;setLoggingOut(true);try{await post('/api/auth/logout',{});expireJudge();}catch(e){setNotice((e as Error).message);}finally{setLoggingOut(false);}};
 
  if(view==='display')return <main className={`display-screen ${mode==='practice'?'is-practice':''}`}>
   <header className="display-header"><div><div className="eyebrow">FUTURE ROAD · LIVE RESULTS</div><h1>자율주행 <span>실시간 순위</span></h1><p>제2회 퓨처로드 자율주행 자동차 제작 캠프</p></div><div className="display-meta"><span className={`mode-badge ${mode}`}>{mode==='official'?'실전 주행':'테스트 기록'}</span><strong>{validTeams}<small> / 9팀 합산</small></strong><Connection failure={failure} lastSync={lastSync}/></div></header>
@@ -58,8 +76,9 @@ export default function ScoreApp(){
   <footer className="display-footer"><p>회차별 성공 차감 적용 <span>·</span> 1·2차 합산 <span>·</span> 동률이면 단축 폭이 큰 팀 우선</p><div><button onClick={()=>setView('judge')}>채점 화면</button><button aria-label="전체 화면" onClick={()=>{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen?.();}}><Maximize size={20}/></button></div></footer>
  </main>;
 
+ if(!ready||auth!=='authorized')return <JudgeLogin state={!ready?'checking':auth} error={authError} onRetry={()=>setAuthReload(n=>n+1)} onDisplay={()=>setView('display')} onLogin={data=>{rememberJudge(data.token);setJudgeID(data.id);setExpiresAt(data.expiresAt);setAuth('authorized');setAuthError('');refresh();}}/>;
  return <div className={`app-shell ${mode==='practice'?'is-practice':''}`}>
-  <header className="app-header"><a className="brand" href={`?view=judge&mode=official${portal?'&embed=futureroad':''}`} aria-label="퓨처로드 주행 채점"><div className="brand-mark"><Flag size={25}/></div><div><strong>FUTURE<span>ROAD</span></strong><small>자율주행 주행 채점</small></div></a><div className="header-right"><Connection failure={failure} lastSync={lastSync}/><button className="icon-button" onClick={()=>setModal('rules')} title="평가 기준" aria-label="평가 기준"><CircleHelp size={21}/></button><button className="icon-button" onClick={()=>setModal('settings')} title="운영 설정" aria-label="운영 설정"><Settings2 size={21}/></button><button className="display-button" onClick={showDisplay}><Monitor size={18}/><span>전광판 열기</span></button></div></header>
+  <header className="app-header"><a className="brand" href={`?view=judge&mode=official${portal?'&embed=futureroad':''}`} aria-label="퓨처로드 주행 채점"><div className="brand-mark"><Flag size={25}/></div><div><strong>FUTURE<span>ROAD</span></strong><small>자율주행 주행 채점</small></div></a><div className="header-right"><button className="judge-logout" onClick={logout} disabled={loggingOut} title={`${judgeID} 로그아웃`}><LogOut size={17}/><span>{loggingOut?'로그아웃 중…':'로그아웃'}</span></button><Connection failure={failure} lastSync={lastSync}/><button className="icon-button" onClick={()=>setModal('rules')} title="평가 기준" aria-label="평가 기준"><CircleHelp size={21}/></button><button className="icon-button" onClick={()=>setModal('settings')} title="운영 설정" aria-label="운영 설정"><Settings2 size={21}/></button><button className="display-button" onClick={showDisplay}><Monitor size={18}/><span>전광판 열기</span></button></div></header>
   <div className="workspace-head"><div className="page-heading"><span className="eyebrow">제2회 퓨처로드 자율주행 자동차 제작 캠프</span><h1>{view==='judge'?'주행을 기록하고, 성장을 확인하세요.':'9개 팀의 주행 결과'}</h1><p>{view==='judge'?'성공한 항목을 체크하면 기록이 자동으로 계산됩니다.':'1·2차 합산 기록이 낮은 팀부터, 동률이면 단축 폭이 큰 팀부터 순위를 정합니다.'}</p></div><div className="mode-control"><span>기록 구분</span><div className="segmented"><button className={mode==='official'?'active':''} onClick={()=>changeMode('official')}>실전</button><button className={mode==='practice'?'active practice':''} onClick={()=>changeMode('practice')}>테스트</button></div></div></div>
   <div className="workspace-tabs"><nav aria-label="화면 선택"><button className={view==='judge'?'active':''} onClick={()=>setView('judge')}><ClipboardCheck size={19}/>주행 채점</button><button className={view==='rankings'?'active':''} onClick={()=>setView('rankings')}><Trophy size={19}/>전체 순위<span>{validTeams}/9</span></button></nav><div className="progress-info"><span className={`mode-badge ${mode}`}>{mode==='official'?'실전 기록':'테스트 전용'}</span><span>{done} / 18회 기록</span></div></div>
   {mode==='practice'&&<div className="alert practice-alert"><Flag size={19}/>지금은 테스트입니다. 실전 순위에는 반영되지 않습니다.</div>}
@@ -125,5 +144,5 @@ function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:
 function Rules(){return <div className="rules-content"><div className="rules-formula">1차 기록 <span>+</span> 2차 기록 <span>=</span> 최종 합산</div><p>회차 기록 = 실제 주행시간 − 성공 차감시간. 심사위원 1명이 차량을 따라가며 성공 항목을 체크합니다. 실패 가산점은 없으며, 각 성공은 한 회차에서 한 번만 인정합니다.</p><div className="rules-list">{MISSIONS.map(m=><div key={m.key}><span><strong>{m.name}</strong><small>{m.detail}</small></span><b>−{m.seconds}초</b></div>)}</div><ul><li>차감 합계는 회차별 최대 60초입니다.</li><li>1·2차 기록을 합산하며, 합산이 낮은 팀이 높은 순위입니다.</li><li>합산 동률이면 단축 폭(1차 기록 − 2차 기록)이 큰 팀을 우선합니다. 두 값 모두 같으면 공동순위입니다.</li><li>단축 폭은 각 회차의 성공 차감을 적용한 기록으로 계산합니다. 2차 기록이 늘면 음수로 계산합니다.</li><li>두 회차 모두 완주해야 순위가 표시됩니다. 미입력·미완주·취소 회차가 있으면 합산하지 않습니다.</li><li>차로 이탈은 4개 바퀴가 모두 허용된 트랙 밖으로 벗어난 경우입니다.</li><li>음수 기록도 계산값 그대로 반영합니다. 별도의 제한시간은 설정하지 않았습니다.</li></ul><a href="/track-scoring.pdf" target="_blank" rel="noreferrer" className="secondary-button"><Download size={18}/>트랙 · 평가 기준 PDF</a><a href="/track-scoring.png" target="_blank" rel="noreferrer"><img className="rules-track" src="/track-scoring.png" alt="기존 실증코스에 5개 성공 평가 기준을 표시한 트랙 안내도"/></a></div>;}
 function Settings({onReset}:{onReset:()=>void}){
  const [busy,setBusy]=useState(false);const [error,setError]=useState('');
- return <div className="settings-content"><h3><ShieldCheck size={19}/>심사위원 1인 운영</h3><p>태블릿에서 로그인이나 코드 입력 없이 바로 채점합니다. 전광판 PC에서는 전광판 화면을 열어 결과를 확인하세요.</p><hr/><h3><RotateCcw size={19}/>테스트 기록 초기화</h3><p>9개 팀의 테스트 기록만 지웁니다. 실전 기록은 유지됩니다.</p><button className="danger-button" disabled={busy} onClick={async()=>{if(!confirm('모든 테스트 기록을 지울까요? 실전 기록은 유지됩니다.'))return;setBusy(true);setError('');try{await post('/api/practice-reset',{confirm:'테스트 초기화'});try{Object.keys(localStorage).filter(k=>k.startsWith('fr-draft-v1-practice-')).forEach(k=>localStorage.removeItem(k));}catch{}onReset();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}>테스트 기록 초기화</button>{error&&<p className="form-error" role="alert">{error}</p>}</div>;
+ return <div className="settings-content"><h3><ShieldCheck size={19}/>심사위원 1인 운영</h3><p>운영본부에서 안내한 ID와 비밀번호로 로그인한 뒤 채점합니다. 로그인은 최대 12시간 유지됩니다. 사용 후에는 로그아웃해 주세요. 전광판은 로그인 없이 결과를 확인할 수 있습니다.</p><hr/><h3><RotateCcw size={19}/>테스트 기록 초기화</h3><p>9개 팀의 테스트 기록만 지웁니다. 실전 기록은 유지됩니다.</p><button className="danger-button" disabled={busy} onClick={async()=>{if(!confirm('모든 테스트 기록을 지울까요? 실전 기록은 유지됩니다.'))return;setBusy(true);setError('');try{await post('/api/practice-reset',{confirm:'테스트 초기화'});try{Object.keys(localStorage).filter(k=>k.startsWith('fr-draft-v1-practice-')).forEach(k=>localStorage.removeItem(k));}catch{}onReset();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}>테스트 기록 초기화</button>{error&&<p className="form-error" role="alert">{error}</p>}</div>;
 }
