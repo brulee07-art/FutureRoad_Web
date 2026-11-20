@@ -5,7 +5,9 @@
 - 저장소: `brulee07-art/FutureRoad_Web`
 - 채점 프로그램 브랜치: `track-scoring`
 - 프로그램 폴더: `track-scoring/`
-- 실행 주소: https://futureroad-track-scoring-2026.brulee07.chatgpt.site
+- 홈페이지: https://www.futureroad.kr/
+- 심사위원용: https://www.futureroad.kr/driving.html
+- 전광판용: https://www.futureroad.kr/driving-display.html
 
 기존 퓨처로드 홈페이지와 함께 관리할 수 있도록 채점 프로그램을 전용 브랜치와 폴더에 보관합니다. 이 브랜치의 `track-scoring/` 안에서 수정하고 커밋하세요.
 
@@ -41,7 +43,9 @@ npm run dev
 
 GitHub 주소로 프로그램의 소스와 변경 이력을 공유할 수 있습니다. 이 저장소는 공개 저장소입니다. 실제 채점은 위의 실행 주소에서 사용합니다.
 
-이 프로그램은 서버와 Cloudflare D1 데이터베이스를 사용합니다. GitHub Pages만으로 서버 저장과 실시간 동기화를 실행할 수 없습니다. GitHub에 커밋한 내용은 현재 실행 중인 사이트에 자동 배포되지 않습니다. 수정한 버전을 검증한 뒤 기존 사이트에 별도 배포해야 합니다.
+이 프로그램은 서버와 Cloudflare D1 데이터베이스를 사용합니다. GitHub Pages만으로 서버 저장과 실시간 동기화를 실행할 수 없습니다. `main` 브랜치의 홈페이지는 Vercel로 자동 배포됩니다. `track-scoring` 브랜치의 채점 프로그램은 별도 서비스이며 GitHub 커밋만으로 자동 배포되지 않습니다. 프로그램을 수정하면 검증 후 기존 채점 서비스에 별도 배포해야 합니다.
+
+홈페이지의 `driving.html`과 `driving-display.html`은 기존 채점 서비스를 홈페이지 내부에 표시합니다. `assets/driving-portal.js`와 `.css`가 공통 탐색과 전체화면을 관리합니다. 화면 안의 전광판 링크도 홈페이지 주소를 사용하며, 주행 기록은 기존 데이터베이스에서 이어집니다.
 
 GitHub에는 소스와 안내 파일이 들어가며, 실제 주행 기록은 서비스의 데이터베이스에 저장됩니다. 현재 결과를 별도로 보관하려면 프로그램의 `CSV 내려받기`를 이용합니다.
 

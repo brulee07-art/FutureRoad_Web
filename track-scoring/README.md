@@ -2,7 +2,7 @@
 
 제2회 퓨처로드 자율주행 자동차 제작 캠프의 9개 팀을 위한 태블릿 채점 및 실시간 전광판 프로그램입니다.
 
-[프로그램 열기](https://futureroad-track-scoring-2026.brulee07.chatgpt.site) · [GitHub에서 수정·관리하기](docs/GITHUB.md)
+[홈페이지](https://www.futureroad.kr/) · [주행 채점](https://www.futureroad.kr/driving.html) · [실시간 순위](https://www.futureroad.kr/driving-display.html) · [GitHub에서 수정·관리하기](docs/GITHUB.md)
 
 ## 사용 방법
 

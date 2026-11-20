@@ -32,8 +32,9 @@ export default function ScoreApp(){
  const [modal,setModal]=useState<'rules'|'settings'|null>(null);
  const [notice,setNotice]=useState('');
  const [ready,setReady]=useState(false);
- useEffect(()=>{const q=new URLSearchParams(location.search);if(q.get('mode')==='practice')setMode('practice');if(['judge','rankings','display'].includes(q.get('view')||''))setView(q.get('view') as View);setReady(true);},[]);
- useEffect(()=>{if(!ready)return;const q=new URLSearchParams({view,mode});history.replaceState(null,'',`?${q}`);},[view,mode,ready]);
+ const [portal,setPortal]=useState(false);
+ useEffect(()=>{const q=new URLSearchParams(location.search);if(q.get('mode')==='practice')setMode('practice');if(['judge','rankings','display'].includes(q.get('view')||''))setView(q.get('view') as View);setPortal(q.get('embed')==='futureroad');setReady(true);},[]);
+ useEffect(()=>{if(!ready)return;const q=new URLSearchParams({view,mode});if(portal)q.set('embed','futureroad');history.replaceState(null,'',`?${q}`);if(portal&&window.parent!==window)window.parent.postMessage({type:'futureroad:state',view,mode},'https://www.futureroad.kr');},[view,mode,ready,portal]);
  useEffect(()=>{if(!ready)return;let alive=true;let fetching=false;const controller=new AbortController();
   const refresh=async()=>{if(fetching)return;fetching=true;try{const response=await fetch(`/api/state?mode=${mode}`,{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('연결이 끊겼습니다. 마지막으로 확인한 기록을 표시합니다.');const data:any=await response.json();if(alive){setAttempts(data.attempts);setLoaded(true);setLastSync(data.serverTime);setFailure('');}}catch(e){if(alive)setFailure((e as Error).message==='Failed to fetch'?'인터넷 연결을 확인해 주세요. 저장된 결과를 다시 연결 중입니다.':(e as Error).message);}finally{fetching=false;}};
   refresh();const timer=setInterval(refresh,2000);return()=>{alive=false;controller.abort();clearInterval(timer);};
@@ -45,9 +46,10 @@ export default function ScoreApp(){
  const done=attempts.filter(a=>a.status!=='withdrawn').length;
  const validTeams=rows.filter(r=>r.score!==null).length;
  const record=attempts.find(a=>a.teamId===teamId&&a.round===round);
- const showDisplay=()=>window.open(`?view=display&mode=${mode}`,'_blank','noopener,noreferrer');
+ const displayURL=portal?`https://www.futureroad.kr/driving-display.html${mode==='practice'?'?mode=practice':''}`:`${typeof location==='undefined'?'':location.origin}/?view=display&mode=${mode}`;
+ const showDisplay=()=>window.open(displayURL,'_blank','noopener,noreferrer');
  const exportCSV=()=>download(`퓨처로드_${mode==='official'?'실전':'테스트'}_순위.csv`,toCSV(attempts),'text/csv;charset=utf-8');
- const copyLink=async()=>{try{await navigator.clipboard.writeText(`${location.origin}/?view=display&mode=${mode}`);setNotice('전광판 주소를 복사했습니다. 전광판 PC에서 열어 주세요.');}catch{setNotice('주소 복사를 지원하지 않는 환경입니다. 전광판 화면을 연 뒤 주소를 복사해 주세요.');}};
+ const copyLink=async()=>{try{await navigator.clipboard.writeText(displayURL);setNotice('전광판 주소를 복사했습니다. 전광판 PC에서 열어 주세요.');}catch{setNotice('주소 복사를 지원하지 않는 환경입니다. 전광판 화면을 연 뒤 주소를 복사해 주세요.');}};
 
  if(view==='display')return <main className={`display-screen ${mode==='practice'?'is-practice':''}`}>
   <header className="display-header"><div><div className="eyebrow">FUTURE ROAD · LIVE RESULTS</div><h1>자율주행 <span>실시간 순위</span></h1><p>제2회 퓨처로드 자율주행 자동차 제작 캠프</p></div><div className="display-meta"><span className={`mode-badge ${mode}`}>{mode==='official'?'실전 주행':'테스트 기록'}</span><strong>{validTeams}<small> / 9팀 합산</small></strong><Connection failure={failure} lastSync={lastSync}/></div></header>
@@ -57,7 +59,7 @@ export default function ScoreApp(){
  </main>;
 
  return <div className={`app-shell ${mode==='practice'?'is-practice':''}`}>
-  <header className="app-header"><a className="brand" href="?view=judge&mode=official" aria-label="퓨처로드 주행 채점"><div className="brand-mark"><Flag size={25}/></div><div><strong>FUTURE<span>ROAD</span></strong><small>자율주행 주행 채점</small></div></a><div className="header-right"><Connection failure={failure} lastSync={lastSync}/><button className="icon-button" onClick={()=>setModal('rules')} title="평가 기준" aria-label="평가 기준"><CircleHelp size={21}/></button><button className="icon-button" onClick={()=>setModal('settings')} title="운영 설정" aria-label="운영 설정"><Settings2 size={21}/></button><button className="display-button" onClick={showDisplay}><Monitor size={18}/><span>전광판 열기</span></button></div></header>
+  <header className="app-header"><a className="brand" href={`?view=judge&mode=official${portal?'&embed=futureroad':''}`} aria-label="퓨처로드 주행 채점"><div className="brand-mark"><Flag size={25}/></div><div><strong>FUTURE<span>ROAD</span></strong><small>자율주행 주행 채점</small></div></a><div className="header-right"><Connection failure={failure} lastSync={lastSync}/><button className="icon-button" onClick={()=>setModal('rules')} title="평가 기준" aria-label="평가 기준"><CircleHelp size={21}/></button><button className="icon-button" onClick={()=>setModal('settings')} title="운영 설정" aria-label="운영 설정"><Settings2 size={21}/></button><button className="display-button" onClick={showDisplay}><Monitor size={18}/><span>전광판 열기</span></button></div></header>
   <div className="workspace-head"><div className="page-heading"><span className="eyebrow">제2회 퓨처로드 자율주행 자동차 제작 캠프</span><h1>{view==='judge'?'주행을 기록하고, 성장을 확인하세요.':'9개 팀의 주행 결과'}</h1><p>{view==='judge'?'성공한 항목을 체크하면 기록이 자동으로 계산됩니다.':'1·2차 합산 기록이 낮은 팀부터, 동률이면 단축 폭이 큰 팀부터 순위를 정합니다.'}</p></div><div className="mode-control"><span>기록 구분</span><div className="segmented"><button className={mode==='official'?'active':''} onClick={()=>changeMode('official')}>실전</button><button className={mode==='practice'?'active practice':''} onClick={()=>changeMode('practice')}>테스트</button></div></div></div>
   <div className="workspace-tabs"><nav aria-label="화면 선택"><button className={view==='judge'?'active':''} onClick={()=>setView('judge')}><ClipboardCheck size={19}/>주행 채점</button><button className={view==='rankings'?'active':''} onClick={()=>setView('rankings')}><Trophy size={19}/>전체 순위<span>{validTeams}/9</span></button></nav><div className="progress-info"><span className={`mode-badge ${mode}`}>{mode==='official'?'실전 기록':'테스트 전용'}</span><span>{done} / 18회 기록</span></div></div>
   {mode==='practice'&&<div className="alert practice-alert"><Flag size={19}/>지금은 테스트입니다. 실전 순위에는 반영되지 않습니다.</div>}
